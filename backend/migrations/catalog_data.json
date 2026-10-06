@@ -1,0 +1,1490 @@
+{
+  "PRODUCTS": [
+    {
+      "id": 1,
+      "name": "Traditional Heritage Shirt",
+      "gender": "men",
+      "cat": "traditional",
+      "region": "Wallagga",
+      "price": 9500,
+      "compare_price": 11000,
+      "rating": 4.9,
+      "review_count": 87,
+      "badge": "bestseller",
+      "badge_text": "Best Seller",
+      "colors": [
+        "#D4A843",
+        "#1a1a1a",
+        "#c0392b"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "XXXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-22.jpg"
+      ],
+      "description": "Handcrafted by master weavers from western Oromia. Features intricate geometric embroidery using natural dyes.",
+      "material": "100% handwoven cotton with gold thread embroidery",
+      "care": "Dry clean only.",
+      "stock": 15
+    },
+    {
+      "id": 2,
+      "name": "Men's Polo Shirt — Oromo Pattern",
+      "gender": "men",
+      "cat": "shirt",
+      "region": "Shawaa",
+      "price": 4500,
+      "compare_price": null,
+      "rating": 4.6,
+      "review_count": 42,
+      "badge": "new",
+      "badge_text": "New",
+      "colors": [
+        "#2980b9",
+        "#1a1a1a",
+        "#27ae60"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-24.jpg"
+      ],
+      "description": "Modern polo shirt featuring traditional Oromo geometric patterns. Perfect for casual and semi-formal occasions.",
+      "material": "Premium cotton blend",
+      "care": "Machine wash cold.",
+      "stock": 32
+    },
+    {
+      "id": 3,
+      "name": "Oromo Cultural Hoodie",
+      "gender": "men",
+      "cat": "jacket",
+      "region": "Arsii",
+      "price": 6800,
+      "compare_price": 8000,
+      "rating": 4.7,
+      "review_count": 28,
+      "badge": "sale",
+      "badge_text": "15% Off",
+      "colors": [
+        "#1a1a1a",
+        "#2B5C2B",
+        "#7B4D2E"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "XXXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-5.jpg"
+      ],
+      "description": "Premium hoodie with embroidered Oromo geometric patterns on chest and sleeves. Comfortable for all seasons.",
+      "material": "80% cotton, 20% polyester blend",
+      "care": "Machine wash cold, tumble dry low.",
+      "stock": 8
+    },
+    {
+      "id": 4,
+      "name": "Men's Traditional Suit",
+      "gender": "men",
+      "cat": "suit",
+      "region": "Shawaa",
+      "price": 18500,
+      "compare_price": 22000,
+      "rating": 4.9,
+      "review_count": 56,
+      "badge": "featured",
+      "badge_text": "Featured",
+      "colors": [
+        "#1a1a1a",
+        "#D4A843"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-8.jpg"
+      ],
+      "description": "Elegant full suit with traditional Oromo embroidery accents. Complete with jacket and matching trousers.",
+      "material": "Premium woven fabric, silk lining",
+      "care": "Dry clean only.",
+      "stock": 5
+    },
+    {
+      "id": 5,
+      "name": "Groom's Wedding Outfit",
+      "gender": "men",
+      "cat": "wedding",
+      "region": "Shawaa",
+      "price": 16000,
+      "compare_price": 19000,
+      "rating": 5,
+      "review_count": 33,
+      "badge": "hot",
+      "badge_text": "Wedding",
+      "colors": [
+        "#1a1a1a",
+        "#D4A843"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-10.jpg"
+      ],
+      "description": "The pinnacle of Oromo men's ceremonial dress. Complete outfit including embroidered shirt, trousers and cape.",
+      "material": "Premium cotton with gold thread",
+      "care": "Dry clean only.",
+      "stock": 3
+    },
+    {
+      "id": 6,
+      "name": "Men's Sports Tracksuit",
+      "gender": "men",
+      "cat": "sport",
+      "region": "Modern Collection",
+      "price": 5200,
+      "compare_price": null,
+      "rating": 4.4,
+      "review_count": 19,
+      "badge": "new",
+      "badge_text": "New",
+      "colors": [
+        "#2B5C2B",
+        "#1a1a1a",
+        "#2980b9"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-16.jpg"
+      ],
+      "description": "Athletic tracksuit featuring OCF cultural branding. Moisture-wicking fabric for sports and active wear.",
+      "material": "Polyester performance blend",
+      "care": "Machine wash cold.",
+      "stock": 20
+    },
+    {
+      "id": 7,
+      "name": "Leather Oromo Jacket",
+      "gender": "men",
+      "cat": "jacket",
+      "region": "Wallagga",
+      "price": 12000,
+      "compare_price": 14500,
+      "rating": 4.8,
+      "review_count": 31,
+      "badge": "bestseller",
+      "badge_text": "Best Seller",
+      "colors": [
+        "#1a1a1a",
+        "#7B4D2E"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://www.ethiopian.store/cdn/shop/files/il_fullxfull.5340931803_hd19-764744.jpg"
+      ],
+      "description": "Premium faux leather jacket with traditional Oromo embroidery accents on collar and cuffs.",
+      "material": "Vegan leather exterior, soft fabric lining",
+      "care": "Wipe clean, do not machine wash.",
+      "stock": 7
+    },
+    {
+      "id": 8,
+      "name": "Ceremonial Men's Shirt",
+      "gender": "men",
+      "cat": "traditional",
+      "region": "Booranaa",
+      "price": 8500,
+      "compare_price": null,
+      "rating": 4.7,
+      "review_count": 44,
+      "badge": "oromo",
+      "badge_text": "Oromo Cultural",
+      "colors": [
+        "#D4A843",
+        "#c0392b",
+        "#f0f0f0"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "XXXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-28.jpg"
+      ],
+      "description": "Bold geometric patterns in the Booranaa tradition. Deep indigo base with copper thread detailing.",
+      "material": "Handwoven cotton, natural plant-based dyes",
+      "care": "Dry clean recommended.",
+      "stock": 11
+    },
+    {
+      "id": 9,
+      "name": "Heritage Dress — Wallagga",
+      "gender": "women",
+      "cat": "dress",
+      "region": "Wallagga",
+      "price": 12000,
+      "compare_price": 14000,
+      "rating": 4.9,
+      "review_count": 124,
+      "badge": "bestseller",
+      "badge_text": "Best Seller",
+      "colors": [
+        "#D4A843",
+        "#1a1a1a",
+        "#c0392b"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "XXXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://www.ethiopian.store/cdn/shop/files/il_fullxfull.5340932171_b7y9-837992.jpg"
+      ],
+      "description": "Handcrafted by master weavers from western Oromia. Features intricate geometric embroidery. Takes up to 2 weeks to craft.",
+      "material": "100% handwoven cotton with silk embroidery",
+      "care": "Dry clean only.",
+      "stock": 9
+    },
+    {
+      "id": 10,
+      "name": "Wandabii Traditional Dress",
+      "gender": "women",
+      "cat": "traditional",
+      "region": "Arsii",
+      "price": 11500,
+      "compare_price": 13500,
+      "rating": 4.8,
+      "review_count": 91,
+      "badge": "featured",
+      "badge_text": "Featured",
+      "colors": [
+        "#D4A843",
+        "#27ae60",
+        "#8B4513"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://www.ethiopian.store/cdn/shop/files/il_fullxfull.5093843040_m6o4-362453.jpg"
+      ],
+      "description": "The iconic flowing dress of the Arsii Oromo. Draped silhouette with circular embroidery motifs.",
+      "material": "Pure woven cotton, natural plant-based dyes",
+      "care": "Dry clean recommended.",
+      "stock": 6
+    },
+    {
+      "id": 11,
+      "name": "Elegant Skirt Set",
+      "gender": "women",
+      "cat": "skirt",
+      "region": "Shawaa",
+      "price": 7500,
+      "compare_price": 9000,
+      "rating": 4.6,
+      "review_count": 38,
+      "badge": "sale",
+      "badge_text": "17% Off",
+      "colors": [
+        "#1a1a1a",
+        "#D4A843",
+        "#c0392b"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://www.ethiopian.store/cdn/shop/files/il_fullxfull.5142065825_8z3q-975614.jpg"
+      ],
+      "description": "Flowing Shawaa-style skirt with matching embroidered blouse. Perfect for formal occasions and cultural events.",
+      "material": "Premium cotton blend with gold embroidery",
+      "care": "Hand wash cold.",
+      "stock": 14
+    },
+    {
+      "id": 12,
+      "name": "Women's Oromo Blouse",
+      "gender": "women",
+      "cat": "shirt",
+      "region": "Harargee",
+      "price": 4200,
+      "compare_price": null,
+      "rating": 4.5,
+      "review_count": 52,
+      "badge": "new",
+      "badge_text": "New",
+      "colors": [
+        "#f0f0f0",
+        "#D4A843",
+        "#2980b9"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "XXXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://www.ethiopian.store/cdn/shop/files/il_fullxfull.4895361274_ii1x-424988.jpg"
+      ],
+      "description": "Elegant blouse featuring star and sun motifs from eastern Oromo tradition. Versatile for work or events.",
+      "material": "Light cotton, machine-made embroidery",
+      "care": "Machine wash cold.",
+      "stock": 25
+    },
+    {
+      "id": 13,
+      "name": "Traditional Hijab Set",
+      "gender": "women",
+      "cat": "hijab",
+      "region": "Harargee",
+      "price": 3800,
+      "compare_price": null,
+      "rating": 4.8,
+      "review_count": 67,
+      "badge": "bestseller",
+      "badge_text": "Best Seller",
+      "colors": [
+        "#D4A843",
+        "#1a1a1a",
+        "#2B5C2B",
+        "#c0392b"
+      ],
+      "sizes": [
+        "One Size"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-22.jpg"
+      ],
+      "description": "Beautifully crafted hijab set with traditional Harargee Oromo patterns. Complete with matching inner cap.",
+      "material": "Soft viscose, hand-embroidered borders",
+      "care": "Hand wash gentle.",
+      "stock": 30
+    },
+    {
+      "id": 14,
+      "name": "Bridal Wedding Dress",
+      "gender": "women",
+      "cat": "wedding",
+      "region": "Wallagga",
+      "price": 28000,
+      "compare_price": 35000,
+      "rating": 5,
+      "review_count": 21,
+      "badge": "featured",
+      "badge_text": "Bridal",
+      "colors": [
+        "#f0f0f0",
+        "#D4A843"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-8.jpg"
+      ],
+      "description": "The most prestigious piece in the OCF collection. Handcrafted bridal dress with gold and silver embroidery throughout. Made to order.",
+      "material": "Premium handwoven cotton, silk lining, gold/silver thread",
+      "care": "Dry clean only.",
+      "stock": 2
+    },
+    {
+      "id": 15,
+      "name": "Booranaa Heritage Dress",
+      "gender": "women",
+      "cat": "dress",
+      "region": "Booranaa",
+      "price": 13500,
+      "compare_price": 16000,
+      "rating": 4.9,
+      "review_count": 88,
+      "badge": "oromo",
+      "badge_text": "Oromo Cultural",
+      "colors": [
+        "#1B4F6E",
+        "#D4A843",
+        "#1a1a1a"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-5.jpg"
+      ],
+      "description": "Distinguished by bold geometric minimalism and deep natural indigo base. Southern Oromo artisan craftsmanship.",
+      "material": "Handwoven cotton, natural indigo dye",
+      "care": "Dry clean only.",
+      "stock": 4
+    },
+    {
+      "id": 16,
+      "name": "Women's Sports Legging Set",
+      "gender": "women",
+      "cat": "sport",
+      "region": "Modern Collection",
+      "price": 3900,
+      "compare_price": null,
+      "rating": 4.3,
+      "review_count": 29,
+      "badge": "new",
+      "badge_text": "New",
+      "colors": [
+        "#1a1a1a",
+        "#2B5C2B",
+        "#c0392b"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-16.jpg"
+      ],
+      "description": "Performance legging set with subtle Oromo geometric print. Suitable for yoga, running, and active wear.",
+      "material": "Polyester-spandex blend",
+      "care": "Machine wash cold.",
+      "stock": 18
+    },
+    {
+      "id": 17,
+      "name": "Contemporary Fusion Dress",
+      "gender": "women",
+      "cat": "dress",
+      "region": "Modern Collection",
+      "price": 10500,
+      "compare_price": null,
+      "rating": 4.6,
+      "review_count": 52,
+      "badge": "new",
+      "badge_text": "New Drop",
+      "colors": [
+        "#D4A843",
+        "#c0392b",
+        "#2980b9"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-28.jpg"
+      ],
+      "description": "Traditional Oromo embroidery meets contemporary silhouettes. A bridge between heritage and modern fashion.",
+      "material": "Cotton-linen blend, silk embroidery",
+      "care": "Machine wash cold.",
+      "stock": 12
+    },
+    {
+      "id": 18,
+      "name": "Boys' Traditional Outfit",
+      "gender": "kids",
+      "cat": "boys",
+      "region": "Wallagga",
+      "price": 7000,
+      "compare_price": 8500,
+      "rating": 4.9,
+      "review_count": 45,
+      "badge": "new",
+      "badge_text": "New",
+      "colors": [
+        "#D4A843",
+        "#1a1a1a",
+        "#2B5C2B"
+      ],
+      "sizes": [
+        "2-3yr",
+        "4-5yr",
+        "6-7yr",
+        "8-9yr",
+        "10-12yr"
+      ],
+      "ageGroup": "kids",
+      "ageRange": [
+        "2-3",
+        "4-5",
+        "6-7",
+        "8-9",
+        "10-12"
+      ],
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-10.jpg"
+      ],
+      "description": "Miniature traditional attire for boys. Matching embroidery patterns to adult pieces — perfect for family photos.",
+      "material": "Soft cotton, child-safe dyes",
+      "care": "Machine wash gentle.",
+      "stock": 22
+    },
+    {
+      "id": 19,
+      "name": "Girls' Heritage Dress",
+      "gender": "kids",
+      "cat": "girls",
+      "region": "Shawaa",
+      "price": 6500,
+      "compare_price": 7800,
+      "rating": 4.8,
+      "review_count": 38,
+      "badge": "bestseller",
+      "badge_text": "Best Seller",
+      "colors": [
+        "#D4A843",
+        "#c0392b",
+        "#f0f0f0"
+      ],
+      "sizes": [
+        "2-3yr",
+        "4-5yr",
+        "6-7yr",
+        "8-9yr",
+        "10-12yr",
+        "13-15yr"
+      ],
+      "ageGroup": "kids",
+      "ageRange": [
+        "2-3",
+        "4-5",
+        "6-7",
+        "8-9",
+        "10-12",
+        "13-15"
+      ],
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-16.jpg"
+      ],
+      "description": "Elegant traditional dress for girls. Miniature Shawaa-style with full embroidery detail. Ages 2–15 available.",
+      "material": "Soft cotton with embroidery",
+      "care": "Machine wash gentle.",
+      "stock": 17
+    },
+    {
+      "id": 20,
+      "name": "School Uniform Set — Traditional",
+      "gender": "kids",
+      "cat": "uniform",
+      "region": "Oromia",
+      "price": 3500,
+      "compare_price": 4200,
+      "rating": 4.5,
+      "review_count": 61,
+      "badge": "sale",
+      "badge_text": "17% Off",
+      "colors": [
+        "#1a1a1a",
+        "#f0f0f0",
+        "#2980b9"
+      ],
+      "sizes": [
+        "4-5yr",
+        "6-7yr",
+        "8-9yr",
+        "10-12yr",
+        "13-15yr"
+      ],
+      "ageGroup": "kids",
+      "ageRange": [
+        "4-5",
+        "6-7",
+        "8-9",
+        "10-12",
+        "13-15"
+      ],
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-22.jpg"
+      ],
+      "description": "Smart school uniform with OCF traditional accents. Durable for daily school use while celebrating Oromo heritage.",
+      "material": "Durable cotton-poly blend, colorfast",
+      "care": "Machine wash warm.",
+      "stock": 40
+    },
+    {
+      "id": 21,
+      "name": "Kids' Irreecha Outfit",
+      "gender": "kids",
+      "cat": "traditional",
+      "region": "All Regions",
+      "price": 5800,
+      "compare_price": null,
+      "rating": 5,
+      "review_count": 27,
+      "badge": "oromo",
+      "badge_text": "Oromo Cultural",
+      "colors": [
+        "#D4A843",
+        "#2B5C2B",
+        "#c0392b"
+      ],
+      "sizes": [
+        "2-3yr",
+        "4-5yr",
+        "6-7yr",
+        "8-9yr",
+        "10-12yr",
+        "13-15yr"
+      ],
+      "ageGroup": "kids",
+      "ageRange": [
+        "2-3",
+        "4-5",
+        "6-7",
+        "8-9",
+        "10-12",
+        "13-15"
+      ],
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-24.jpg"
+      ],
+      "description": "Full traditional outfit for Irreecha and other cultural celebrations. Available in all kids' sizes.",
+      "material": "Traditional handwoven cotton, child-safe dyes",
+      "care": "Dry clean recommended.",
+      "stock": 13
+    },
+    {
+      "id": 22,
+      "name": "Boys' Polo Shirt — Cultural Print",
+      "gender": "kids",
+      "cat": "boys",
+      "region": "Modern Collection",
+      "price": 2200,
+      "compare_price": null,
+      "rating": 4.4,
+      "review_count": 19,
+      "badge": "new",
+      "badge_text": "New",
+      "colors": [
+        "#2980b9",
+        "#1a1a1a",
+        "#27ae60"
+      ],
+      "sizes": [
+        "4-5yr",
+        "6-7yr",
+        "8-9yr",
+        "10-12yr",
+        "13-15yr"
+      ],
+      "ageGroup": "kids",
+      "ageRange": [
+        "4-5",
+        "6-7",
+        "8-9",
+        "10-12",
+        "13-15"
+      ],
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-28.jpg"
+      ],
+      "description": "Smart polo shirt for boys featuring traditional Oromo micro-patterns. Great for school and casual wear.",
+      "material": "Premium cotton",
+      "care": "Machine wash cold.",
+      "stock": 28
+    },
+    {
+      "id": 23,
+      "name": "Girls' Traditional Dress — Toddler",
+      "gender": "kids",
+      "cat": "girls",
+      "region": "Wallagga",
+      "price": 4200,
+      "compare_price": 5000,
+      "rating": 4.9,
+      "review_count": 33,
+      "badge": "sale",
+      "badge_text": "16% Off",
+      "colors": [
+        "#D4A843",
+        "#c0392b"
+      ],
+      "sizes": [
+        "2-3yr",
+        "4-5yr",
+        "6-7yr"
+      ],
+      "ageGroup": "kids",
+      "ageRange": [
+        "2-3",
+        "4-5",
+        "6-7"
+      ],
+      "images": [
+        "https://www.ethiopian.store/cdn/shop/files/il_fullxfull.5093843040_m6o4-362453.jpg"
+      ],
+      "description": "Adorable traditional dress for toddler girls. Lightweight and comfortable for all-day wear.",
+      "material": "Soft cotton, hypoallergenic dyes",
+      "care": "Machine wash gentle, low heat.",
+      "stock": 9
+    },
+    {
+      "id": 24,
+      "name": "Teen Girls' Fusion Dress",
+      "gender": "kids",
+      "cat": "girls",
+      "region": "Modern Collection",
+      "price": 5500,
+      "compare_price": null,
+      "rating": 4.6,
+      "review_count": 14,
+      "badge": "new",
+      "badge_text": "New",
+      "colors": [
+        "#D4A843",
+        "#2980b9",
+        "#c0392b"
+      ],
+      "sizes": [
+        "10-12yr",
+        "13-15yr"
+      ],
+      "ageGroup": "kids",
+      "ageRange": [
+        "10-12",
+        "13-15"
+      ],
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-8.jpg"
+      ],
+      "description": "Contemporary fusion style for teen girls blending Oromo patterns with modern silhouettes.",
+      "material": "Cotton-linen blend",
+      "care": "Machine wash cold.",
+      "stock": 11
+    },
+    {
+      "id": 25,
+      "name": "Oromo Graphic T-Shirt",
+      "gender": "men",
+      "cat": "shirt",
+      "region": "Modern Collection",
+      "price": 2400,
+      "compare_price": 2900,
+      "rating": 4.5,
+      "review_count": 33,
+      "badge": "sale",
+      "badge_text": "17% Off",
+      "colors": [
+        "#1a1a1a",
+        "#f0f0f0",
+        "#2B5C2B"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "XXXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-11.jpg"
+      ],
+      "description": "Bold graphic tee with iconic Oromo script and geometric print on front chest. 100% premium cotton.",
+      "material": "100% combed cotton",
+      "care": "Machine wash cold, tumble dry low.",
+      "stock": 45
+    },
+    {
+      "id": 26,
+      "name": "Harargee Pattern Hoodie",
+      "gender": "men",
+      "cat": "jacket",
+      "region": "Harargee",
+      "price": 7200,
+      "compare_price": 8500,
+      "rating": 4.7,
+      "review_count": 21,
+      "badge": "sale",
+      "badge_text": "15% Off",
+      "colors": [
+        "#1B4F6E",
+        "#1a1a1a",
+        "#D4A843"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-16.jpg"
+      ],
+      "description": "Heavyweight hoodie featuring Harargee star-and-sun motifs embroidered on chest pocket and sleeves.",
+      "material": "Cotton-polyester fleece",
+      "care": "Machine wash cold.",
+      "stock": 14
+    },
+    {
+      "id": 27,
+      "name": "Men's Wedding Shawl",
+      "gender": "men",
+      "cat": "traditional",
+      "region": "Wallagga",
+      "price": 6500,
+      "compare_price": null,
+      "rating": 5,
+      "review_count": 17,
+      "badge": "oromo",
+      "badge_text": "Oromo Cultural",
+      "colors": [
+        "#D4A843",
+        "#1a1a1a",
+        "#f0f0f0"
+      ],
+      "sizes": [
+        "One Size"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://www.ethiopian.store/cdn/shop/files/il_fullxfull.5093843040_m6o4-362453.jpg"
+      ],
+      "description": "Traditional ceremonial shawl worn over the shoulder at weddings and cultural celebrations.",
+      "material": "Handwoven silk-cotton blend, gold thread border",
+      "care": "Dry clean only.",
+      "stock": 20
+    },
+    {
+      "id": 28,
+      "name": "Wandabii Shawl — Premium",
+      "gender": "women",
+      "cat": "traditional",
+      "region": "Arsii",
+      "price": 8500,
+      "compare_price": 9800,
+      "rating": 4.9,
+      "review_count": 72,
+      "badge": "bestseller",
+      "badge_text": "Best Seller",
+      "colors": [
+        "#D4A843",
+        "#1a1a1a",
+        "#f0f0f0",
+        "#c0392b"
+      ],
+      "sizes": [
+        "One Size"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://www.ethiopian.store/cdn/shop/files/il_fullxfull.5340932171_b7y9-837992.jpg"
+      ],
+      "description": "The iconic Arsii Oromo shawl. Luxurious hand-woven fabric with intricate circular border embroidery. Most gifted item.",
+      "material": "Pure handwoven cotton, natural dyes",
+      "care": "Dry clean recommended.",
+      "stock": 22
+    },
+    {
+      "id": 29,
+      "name": "Women's Cultural Blouse — Wallagga",
+      "gender": "women",
+      "cat": "shirt",
+      "region": "Wallagga",
+      "price": 5200,
+      "compare_price": null,
+      "rating": 4.7,
+      "review_count": 44,
+      "badge": "new",
+      "badge_text": "New",
+      "colors": [
+        "#D4A843",
+        "#1a1a1a",
+        "#c0392b",
+        "#f0f0f0"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "XXXL"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-22.jpg"
+      ],
+      "description": "Elegant embroidered blouse in the Wallagga tradition. Bold diamond patterns in gold and black.",
+      "material": "Handwoven cotton, gold thread embroidery",
+      "care": "Hand wash cold or dry clean.",
+      "stock": 18
+    },
+    {
+      "id": 30,
+      "name": "Modern Hijab — Shawaa Style",
+      "gender": "women",
+      "cat": "hijab",
+      "region": "Shawaa",
+      "price": 4200,
+      "compare_price": 5000,
+      "rating": 4.8,
+      "review_count": 38,
+      "badge": "sale",
+      "badge_text": "16% Off",
+      "colors": [
+        "#D4A843",
+        "#1a1a1a",
+        "#2B5C2B",
+        "#c0392b",
+        "#2980b9"
+      ],
+      "sizes": [
+        "One Size"
+      ],
+      "ageGroup": "adult",
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-5.jpg"
+      ],
+      "description": "Contemporary hijab featuring central Shawaa geometric patterns. Lightweight viscose with silk-feel finish.",
+      "material": "Premium viscose, hand-embroidered border",
+      "care": "Hand wash gentle, cold water.",
+      "stock": 30
+    },
+    {
+      "id": 31,
+      "name": "Kids' Oromo Hoodie",
+      "gender": "kids",
+      "cat": "boys",
+      "region": "Modern Collection",
+      "price": 3200,
+      "compare_price": null,
+      "rating": 4.6,
+      "review_count": 23,
+      "badge": "new",
+      "badge_text": "New",
+      "colors": [
+        "#1a1a1a",
+        "#2B5C2B",
+        "#D4A843"
+      ],
+      "sizes": [
+        "4-5yr",
+        "6-7yr",
+        "8-9yr",
+        "10-12yr",
+        "13-15yr"
+      ],
+      "ageGroup": "kids",
+      "ageRange": [
+        "4-5",
+        "6-7",
+        "8-9",
+        "10-12",
+        "13-15"
+      ],
+      "images": [
+        "https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-24.jpg"
+      ],
+      "description": "Cozy hoodie for kids with Oromo script and geometric print. Warm fleece lining. Perfect for school and play.",
+      "material": "Cotton-poly fleece, child-safe inks",
+      "care": "Machine wash cold, gentle cycle.",
+      "stock": 26
+    },
+    {
+      "id": 32,
+      "name": "Girls' School Dress — Oromo Edition",
+      "gender": "kids",
+      "cat": "uniform",
+      "region": "Oromia",
+      "price": 2800,
+      "compare_price": 3400,
+      "rating": 4.5,
+      "review_count": 31,
+      "badge": "sale",
+      "badge_text": "18% Off",
+      "colors": [
+        "#1a1a1a",
+        "#f0f0f0",
+        "#2980b9"
+      ],
+      "sizes": [
+        "4-5yr",
+        "6-7yr",
+        "8-9yr",
+        "10-12yr",
+        "13-15yr"
+      ],
+      "ageGroup": "kids",
+      "ageRange": [
+        "4-5",
+        "6-7",
+        "8-9",
+        "10-12",
+        "13-15"
+      ],
+      "images": [
+        "https://www.ethiopian.store/cdn/shop/files/il_fullxfull.5142065825_8z3q-975614.jpg"
+      ],
+      "description": "Smart school dress with subtle Oromo collar embroidery. Durable, easy-care fabric for daily school use.",
+      "material": "Polyester-cotton blend, colourfast",
+      "care": "Machine wash warm, line dry.",
+      "stock": 38
+    }
+  ],
+  "REVIEWS_DATA": {
+    "1": [
+      {
+        "author": "Dawit K.",
+        "rating": 5,
+        "date": "Mar 2024",
+        "text": "Absolutely beautiful craftsmanship. Wore it to our Irreecha celebration and received so many compliments."
+      },
+      {
+        "author": "Lelise A.",
+        "rating": 5,
+        "date": "Feb 2024",
+        "text": "The quality is exceptional. You can feel the care that went into making it."
+      },
+      {
+        "author": "Tariku B.",
+        "rating": 4,
+        "date": "Jan 2024",
+        "text": "Great product, shipping was fast. Sizing runs slightly large."
+      }
+    ],
+    "2": [
+      {
+        "author": "Abebe G.",
+        "rating": 5,
+        "date": "Apr 2024",
+        "text": "Modern design with a beautiful cultural touch. Perfect for office and casual wear."
+      },
+      {
+        "author": "Samuel T.",
+        "rating": 4,
+        "date": "Mar 2024",
+        "text": "Very good quality polo shirt. The Oromo pattern is subtle and elegant."
+      }
+    ],
+    "3": [
+      {
+        "author": "Biruk H.",
+        "rating": 5,
+        "date": "May 2024",
+        "text": "Love this hoodie! Comfortable, warm, and the embroidery is stunning."
+      },
+      {
+        "author": "Yared A.",
+        "rating": 4,
+        "date": "Apr 2024",
+        "text": "Great fit and quality. Runs true to size."
+      }
+    ],
+    "4": [
+      {
+        "author": "Fikadu M.",
+        "rating": 5,
+        "date": "Feb 2024",
+        "text": "Wore this to my cousin's wedding. Everyone was amazed by the craftsmanship."
+      },
+      {
+        "author": "Habtamu D.",
+        "rating": 5,
+        "date": "Jan 2024",
+        "text": "Premium quality suit. The embroidery is exquisite and the fit is perfect."
+      },
+      {
+        "author": "Tesfaye R.",
+        "rating": 4,
+        "date": "Dec 2023",
+        "text": "Excellent suit, delivery was fast. Highly recommend for special occasions."
+      }
+    ],
+    "5": [
+      {
+        "author": "Kedir B.",
+        "rating": 5,
+        "date": "Jun 2024",
+        "text": "Perfect groom's outfit. My wife and I matched our traditional attire beautifully."
+      },
+      {
+        "author": "Girma L.",
+        "rating": 5,
+        "date": "May 2024",
+        "text": "Made our wedding truly Oromo. Received so many compliments from guests."
+      }
+    ],
+    "6": [
+      {
+        "author": "Robel T.",
+        "rating": 4,
+        "date": "Apr 2024",
+        "text": "Good quality tracksuit. The cultural branding is a nice touch for everyday wear."
+      },
+      {
+        "author": "Mekdes A.",
+        "rating": 5,
+        "date": "Mar 2024",
+        "text": "Love wearing this to the gym. Comfortable and stylish with cultural pride."
+      }
+    ],
+    "7": [
+      {
+        "author": "Elias F.",
+        "rating": 5,
+        "date": "May 2024",
+        "text": "Premium jacket with beautiful embroidery. Turns heads everywhere I go."
+      },
+      {
+        "author": "Solomon G.",
+        "rating": 4,
+        "date": "Apr 2024",
+        "text": "Excellent quality and design. Fast international shipping to Sweden."
+      }
+    ],
+    "8": [
+      {
+        "author": "Jote K.",
+        "rating": 5,
+        "date": "Jun 2024",
+        "text": "The Booranaa patterns are incredible. This shirt tells a story."
+      },
+      {
+        "author": "Bultum A.",
+        "rating": 4,
+        "date": "May 2024",
+        "text": "Great ceremonial shirt. The natural dyes give it an authentic feel."
+      }
+    ],
+    "9": [
+      {
+        "author": "Sara M.",
+        "rating": 5,
+        "date": "Apr 2024",
+        "text": "This dress is a masterpiece. The embroidery detail is incredible and the fit is perfect."
+      },
+      {
+        "author": "Falmata G.",
+        "rating": 5,
+        "date": "Mar 2024",
+        "text": "Wore this to our community Irreecha. Everyone wanted to know where I bought it!"
+      },
+      {
+        "author": "Naomi T.",
+        "rating": 5,
+        "date": "Feb 2024",
+        "text": "Shipping to Canada was fast. Dress exceeded my expectations."
+      }
+    ],
+    "10": [
+      {
+        "author": "Caaltuu H.",
+        "rating": 5,
+        "date": "May 2024",
+        "text": "The Wandabii is exactly as described. The craftsmanship is museum-worthy."
+      },
+      {
+        "author": "Ifaa B.",
+        "rating": 5,
+        "date": "Apr 2024",
+        "text": "Wore this to Irreecha and felt the deepest cultural pride. Truly beautiful."
+      },
+      {
+        "author": "Lensa D.",
+        "rating": 4,
+        "date": "Mar 2024",
+        "text": "Stunning dress. Slightly longer than expected but still wonderful."
+      }
+    ],
+    "11": [
+      {
+        "author": "Hawi T.",
+        "rating": 5,
+        "date": "Apr 2024",
+        "text": "The skirt set is gorgeous. Perfect for cultural events and parties."
+      },
+      {
+        "author": "Tigist A.",
+        "rating": 4,
+        "date": "Mar 2024",
+        "text": "Beautiful set. The matching blouse completes the look perfectly."
+      }
+    ],
+    "12": [
+      {
+        "author": "Megersa L.",
+        "rating": 5,
+        "date": "Jun 2024",
+        "text": "Versatile blouse — I wear it to work and cultural events. Exactly as pictured."
+      },
+      {
+        "author": "Ayantu S.",
+        "rating": 4,
+        "date": "May 2024",
+        "text": "Great quality blouse. The Harargee star pattern is beautiful."
+      }
+    ],
+    "13": [
+      {
+        "author": "Fatuma A.",
+        "rating": 5,
+        "date": "May 2024",
+        "text": "Perfect hijab set. The embroidery is delicate and the fabric is super soft."
+      },
+      {
+        "author": "Nageesso B.",
+        "rating": 5,
+        "date": "Apr 2024",
+        "text": "Beautiful cultural hijab set. Fast shipping to the UK. Will buy again!"
+      },
+      {
+        "author": "Halima D.",
+        "rating": 4,
+        "date": "Mar 2024",
+        "text": "Lovely design and quality fabric. Highly recommend."
+      }
+    ],
+    "14": [
+      {
+        "author": "Ayantu R.",
+        "rating": 5,
+        "date": "Mar 2024",
+        "text": "My wedding dress was a dream. The gold embroidery was beyond anything I imagined."
+      },
+      {
+        "author": "Makda H.",
+        "rating": 5,
+        "date": "Feb 2024",
+        "text": "Custom-made to my measurements and it fit perfectly. Worth every birr."
+      }
+    ],
+    "15": [
+      {
+        "author": "Gada L.",
+        "rating": 5,
+        "date": "Jun 2024",
+        "text": "The Booranaa dress has an elegance that is truly unique. Deep and meaningful."
+      },
+      {
+        "author": "Dinke M.",
+        "rating": 5,
+        "date": "May 2024",
+        "text": "The indigo dye is rich and authentic. Receives so many compliments."
+      }
+    ],
+    "16": [
+      {
+        "author": "Liya B.",
+        "rating": 4,
+        "date": "May 2024",
+        "text": "Great sportswear for the gym. The Oromo print makes it one-of-a-kind."
+      },
+      {
+        "author": "Amina T.",
+        "rating": 5,
+        "date": "Apr 2024",
+        "text": "Love this legging set! Perfect for yoga and running. Highly recommend."
+      }
+    ],
+    "17": [
+      {
+        "author": "Nardos G.",
+        "rating": 5,
+        "date": "Jun 2024",
+        "text": "The contemporary fusion dress is stunning. It bridges tradition and modern fashion perfectly."
+      },
+      {
+        "author": "Birke A.",
+        "rating": 4,
+        "date": "May 2024",
+        "text": "Beautiful dress. The silk embroidery detail is exquisite."
+      }
+    ],
+    "18": [
+      {
+        "author": "Hirut K.",
+        "rating": 5,
+        "date": "Apr 2024",
+        "text": "My son looked amazing at the family Irreecha. Perfect sizing for a 7-year-old."
+      },
+      {
+        "author": "Fekerte D.",
+        "rating": 5,
+        "date": "Mar 2024",
+        "text": "Exactly like the adult version but for kids. Great quality and fast shipping."
+      }
+    ],
+    "19": [
+      {
+        "author": "Sinat B.",
+        "rating": 5,
+        "date": "May 2024",
+        "text": "My daughter absolutely loves her dress. The embroidery is beautiful even on the kids' version."
+      },
+      {
+        "author": "Yeshi T.",
+        "rating": 5,
+        "date": "Apr 2024",
+        "text": "Perfect for our community Irreecha event. My girl was the best dressed!"
+      },
+      {
+        "author": "Almaz G.",
+        "rating": 4,
+        "date": "Mar 2024",
+        "text": "Great dress, arrived well packaged. Will definitely order again."
+      }
+    ],
+    "20": [
+      {
+        "author": "Hana M.",
+        "rating": 4,
+        "date": "May 2024",
+        "text": "Great school uniform. Durable fabric that survives daily use. Kids love the cultural touch."
+      },
+      {
+        "author": "Tigist R.",
+        "rating": 5,
+        "date": "Apr 2024",
+        "text": "Finally a school uniform that celebrates our heritage. Excellent quality."
+      }
+    ],
+    "21": [
+      {
+        "author": "Iftu A.",
+        "rating": 5,
+        "date": "Jun 2024",
+        "text": "Perfect Irreecha outfit for our kids. All three children wore this and they were adorable."
+      },
+      {
+        "author": "Dambii L.",
+        "rating": 5,
+        "date": "May 2024",
+        "text": "Quality is amazing. The cultural significance of this outfit means so much to our family."
+      }
+    ],
+    "22": [
+      {
+        "author": "Tolosa G.",
+        "rating": 4,
+        "date": "May 2024",
+        "text": "My son loves this polo. Wears it to school every week. Great quality."
+      },
+      {
+        "author": "Abinet K.",
+        "rating": 5,
+        "date": "Apr 2024",
+        "text": "Great kids' polo shirt. The cultural print is subtle and beautiful."
+      }
+    ],
+    "23": [
+      {
+        "author": "Lensa T.",
+        "rating": 5,
+        "date": "Jun 2024",
+        "text": "Adorable toddler dress. My 3-year-old loves it and the fabric is super soft."
+      },
+      {
+        "author": "Mekdes B.",
+        "rating": 5,
+        "date": "May 2024",
+        "text": "Perfect for our baby girl. Fast shipping and excellent packaging."
+      }
+    ],
+    "24": [
+      {
+        "author": "Saba R.",
+        "rating": 5,
+        "date": "Jun 2024",
+        "text": "My teenage daughter is obsessed with this dress. Modern yet culturally meaningful."
+      },
+      {
+        "author": "Alem T.",
+        "rating": 4,
+        "date": "May 2024",
+        "text": "Beautiful fusion dress for teens. Great quality and fast shipping."
+      }
+    ]
+  }
+}

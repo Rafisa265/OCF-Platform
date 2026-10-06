@@ -1,0 +1,40 @@
+# Environment & Secrets
+.env
+*.env
+*.env.*
+!.env.example
+
+# Node dependencies
+node_modules/
+package-lock.json.bak
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Uploaded media (preserve directory via .gitkeep)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Backups & SQLite legacy files
+backend_backup/
+*.bak
+*.bak.*
+*.sqlite
+*.sqlite-journal
+*.sqlite.bak.js
+*.db
+
+# One-off migration & patch scripts
+*_refactor.js
+patch_*.js
+extract*.js
+split_js.js
+update_sql.js
+refactor.js
+
+# Operating System & IDE
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/

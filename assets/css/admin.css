@@ -1,0 +1,339 @@
+/* ═══════════════════════════════════════════════════════════
+   OCF Admin Dashboard — admin.css
+   Scoped to #page-admin so it never bleeds into customer UI
+═══════════════════════════════════════════════════════════ */
+
+/* ── Layout shell ─────────────────────────────────────── */
+#page-admin { min-height: 100vh; background: var(--black); padding: 1rem; }
+
+.adm-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-top: 1rem;
+}
+@media (max-width: 860px) {
+  .adm-shell { grid-template-columns: 1fr; }
+}
+
+/* ── Sidebar ──────────────────────────────────────────── */
+.adm-sidebar {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 1.25rem .75rem;
+  position: sticky;
+  top: 80px;
+  height: fit-content;
+}
+.adm-brand {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--gold);
+  padding: .25rem .5rem 1rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: .75rem;
+}
+.adm-brand span { font-size: .65rem; display: block; color: var(--muted); font-family: var(--font-body); }
+.adm-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: var(--r);
+  color: var(--ivory);
+  font-size: .8rem;
+  padding: .65rem .75rem;
+  cursor: pointer;
+  transition: background var(--t), color var(--t);
+  text-align: left;
+}
+.adm-nav-btn:hover  { background: rgba(212,175,55,.08); }
+.adm-nav-btn.active { background: rgba(212,175,55,.15); color: var(--gold); }
+.adm-nav-btn .adm-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+/* ── Content area ─────────────────────────────────────── */
+.adm-main { min-width: 0; }
+
+.adm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.adm-title { font-family: var(--font-display); font-size: 1.5rem; color: var(--gold); }
+
+/* ── Stat cards ───────────────────────────────────────── */
+.adm-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+.adm-stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 1.1rem 1rem;
+}
+.adm-stat-label { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .4rem; }
+.adm-stat-value { font-size: 1.6rem; font-weight: 700; color: var(--ivory); line-height: 1.1; }
+.adm-stat-value.gold { color: var(--gold); }
+
+/* ── Card / panel ─────────────────────────────────────── */
+.adm-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.adm-card-title {
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-bottom: 1rem;
+}
+
+/* ── Table ────────────────────────────────────────────── */
+.adm-table-wrap { overflow-x: auto; }
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .78rem;
+}
+.adm-table th {
+  text-align: left;
+  padding: .55rem .75rem;
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.adm-table td {
+  padding: .75rem;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  vertical-align: middle;
+  color: var(--ivory);
+}
+.adm-table tr:last-child td { border-bottom: none; }
+.adm-table tr:hover td { background: rgba(255,255,255,.02); }
+
+/* ── Status badges ────────────────────────────────────── */
+.adm-badge {
+  display: inline-block;
+  font-size: .58rem;
+  padding: .2rem .55rem;
+  border-radius: 20px;
+  font-weight: 600;
+  text-transform: capitalize;
+  letter-spacing: .03em;
+}
+.adm-badge.pending    { background: rgba(255,190,60,.15);  color: #ffbe3c; }
+.adm-badge.processing { background: rgba(100,149,237,.15); color: #6495ed; }
+.adm-badge.shipped    { background: rgba(102,205,170,.15); color: #66cdaa; }
+.adm-badge.delivered  { background: rgba(50,205,100,.15);  color: #32cd64; }
+.adm-badge.cancelled  { background: rgba(220,80,80,.15);   color: #dc5050; }
+.adm-badge.active     { background: rgba(50,205,100,.15);  color: #32cd64; }
+.adm-badge.inactive   { background: rgba(150,150,150,.15); color: #999; }
+
+/* ── Status selector ──────────────────────────────────── */
+.adm-select {
+  background: var(--black);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--ivory);
+  font-size: .75rem;
+  padding: .3rem .55rem;
+  cursor: pointer;
+}
+.adm-select:focus { outline: none; border-color: var(--gold); }
+
+/* ── Forms ────────────────────────────────────────────── */
+.adm-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 640px) { .adm-form-grid { grid-template-columns: 1fr; } }
+.adm-form-full { grid-column: 1 / -1; }
+
+.adm-label {
+  display: block;
+  font-size: .68rem;
+  color: var(--muted);
+  margin-bottom: .3rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.adm-input {
+  width: 100%;
+  background: var(--black);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--ivory);
+  font-size: .82rem;
+  padding: .6rem .75rem;
+  box-sizing: border-box;
+  transition: border-color var(--t);
+  font-family: var(--font-body);
+}
+.adm-input:focus { outline: none; border-color: var(--gold); }
+.adm-textarea { min-height: 80px; resize: vertical; }
+.adm-checkbox-row { display: flex; align-items: center; gap: .5rem; font-size: .8rem; color: var(--ivory); cursor: pointer; }
+.adm-checkbox-row input { accent-color: var(--gold); }
+
+/* ── Upload zone ──────────────────────────────────────── */
+.adm-upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--r2);
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--t);
+}
+.adm-upload-zone:hover  { border-color: var(--gold); }
+.adm-upload-zone.drag   { border-color: var(--gold); background: rgba(212,175,55,.05); }
+.adm-img-preview {
+  width: 80px; height: 80px;
+  object-fit: cover;
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  margin-top: .75rem;
+}
+
+/* ── Buttons ──────────────────────────────────────────── */
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .78rem;
+  font-weight: 600;
+  padding: .55rem 1rem;
+  border-radius: var(--r);
+  border: none;
+  cursor: pointer;
+  transition: opacity var(--t), transform var(--t);
+}
+.adm-btn:hover   { opacity: .85; transform: translateY(-1px); }
+.adm-btn:active  { transform: none; opacity: 1; }
+.adm-btn-gold    { background: var(--gold); color: #111; }
+.adm-btn-ghost   { background: rgba(255,255,255,.06); color: var(--ivory); border: 1px solid var(--border); }
+.adm-btn-danger  { background: rgba(220,80,80,.15); color: #dc5050; border: 1px solid rgba(220,80,80,.3); }
+.adm-btn-sm      { font-size: .7rem; padding: .35rem .7rem; }
+
+/* ── Skeleton loading ─────────────────────────────────── */
+.adm-skel {
+  background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.08) 50%, rgba(255,255,255,.04) 75%);
+  background-size: 200% 100%;
+  animation: adm-shimmer 1.4s infinite;
+  border-radius: var(--r);
+}
+@keyframes adm-shimmer { to { background-position: -200% 0; } }
+
+/* ── Tab row ──────────────────────────────────────────── */
+.adm-tabs { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.adm-tab {
+  font-size: .75rem;
+  padding: .45rem 1rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all var(--t);
+}
+.adm-tab.active { background: var(--gold); border-color: var(--gold); color: #111; font-weight: 700; }
+
+/* ── Empty / error states ─────────────────────────────── */
+.adm-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--muted);
+  font-size: .82rem;
+}
+.adm-empty-icon { font-size: 2.5rem; margin-bottom: .75rem; }
+.adm-error { color: #e06060; font-size: .8rem; }
+
+/* ── Low-stock highlight ──────────────────────────────── */
+.adm-low-stock { color: #ffbe3c; font-size: .7rem; font-weight: 600; }
+
+/* ── Product image thumbnail in table ────────────────── */
+.adm-prod-thumb {
+  width: 40px; height: 40px;
+  object-fit: cover;
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+}
+
+/* ── Denied screen ────────────────────────────────────── */
+.adm-denied {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  gap: 1rem;
+}
+
+/* ── Admin Confirmation Modal ─────────────────────────── */
+.adm-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+  animation: admFadeIn 0.2s ease-out;
+}
+.adm-modal-dialog {
+  background: var(--card, #1c1c1e);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--r2, 12px);
+  padding: 1.75rem;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  animation: admScaleIn 0.2s ease-out;
+}
+.adm-modal-icon {
+  font-size: 2.2rem;
+  margin-bottom: 0.75rem;
+}
+.adm-modal-title {
+  font-family: var(--font-display, serif);
+  font-size: 1.25rem;
+  color: var(--ivory, #f5f5f7);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+.adm-modal-desc {
+  font-size: 0.85rem;
+  color: var(--ivory, #e5e5e7);
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+.adm-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+@keyframes admFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes admScaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+

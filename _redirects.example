@@ -1,0 +1,7 @@
+# Cloudflare Pages — Reverse Proxy Redirects (Optional)
+# If you want Cloudflare Pages to proxy API and upload requests to Render,
+# rename this file to "_redirects" (without .example) and replace YOUR-RENDER-SERVICE
+# with your actual Render service URL (e.g. ocf-api.onrender.com).
+#
+# /api/*      https://YOUR-RENDER-SERVICE.onrender.com/api/:splat  200
+# /uploads/*  https://YOUR-RENDER-SERVICE.onrender.com/uploads/:splat  200

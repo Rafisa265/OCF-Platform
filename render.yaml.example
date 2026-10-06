@@ -1,0 +1,34 @@
+# Render Blueprint Specification (render.yaml)
+# Use this file to automatically configure your Render Web Service.
+# To use: rename this file to "render.yaml" in your GitHub repository.
+
+services:
+  - type: web
+    name: ocf-backend
+    env: node
+    plan: starter # Starter plan or higher is required for persistent disk storage
+    rootDir: backend
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    disk:
+      name: ocf-uploads
+      mountPath: /var/data/uploads
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: UPLOADS_DIR
+        value: /var/data/uploads
+      - key: DATABASE_URL
+        sync: false # Set securely in Render dashboard (Supabase URL)
+      - key: JWT_SECRET
+        generateValue: true # Render automatically generates a 64-char cryptographically secure secret
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: FRONTEND_URL
+        sync: false # Set to your Cloudflare Pages domain (e.g. https://ocf.pages.dev)
+      - key: ADMIN_EMAIL
+        value: admin@ocf.com
+      - key: ADMIN_PASSWORD
+        sync: false # Set securely in Render dashboard

@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="OCF — Oromo Cultural Fashion. Authentic handcrafted clothing for Men, Women & Kids. Traditional and modern styles. Worldwide shipping.">
+<title>OCF — Oromo Cultural Fashion | Men · Women · Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+
+</head>
+<body>
+
+<div id="toastWrap"></div>
+<div id="overlay" onclick="closeAll()"></div>
+
+<!-- ═══ MOBILE MENU ═══ -->
+<div id="mMenu">
+  <a class="m-nav-link" onclick="go('home');closeMMenu()">🏠 Home</a>
+  <a class="m-nav-link" onclick="go('men');closeMMenu()">👔 Men</a>
+  <a class="m-nav-link" onclick="go('women');closeMMenu()">👗 Women</a>
+  <a class="m-nav-link" onclick="go('kids');closeMMenu()">🧒 Kids</a>
+  <a class="m-nav-link" onclick="go('products');closeMMenu()">🛍 Shop All</a>
+  <a class="m-nav-link" onclick="go('collections');closeMMenu()">🌿 Collections</a>
+  <a class="m-nav-link" onclick="go('bundles');closeMMenu()">🎁 Bundles</a>
+  <a class="m-nav-link" onclick="go('about');closeMMenu()">📖 Our Story</a>
+  <a class="m-nav-link" onclick="go('wishlist');closeMMenu()">♡ Wishlist</a>
+  <a class="m-nav-link" onclick="go('contact');closeMMenu()">✉ Contact</a>
+  <a class="m-nav-link" onclick="go('account');closeMMenu()">👤 My Account</a>
+  <a class="m-nav-link" id="m-admin-link" style="display:none" onclick="go('admin');closeMMenu()">⚙ Admin</a>
+</div>
+
+<!-- ═══ NAV ═══ -->
+<nav id="nav">
+  <div class="nav-wrap">
+    <div class="nav-logo" onclick="go('home')" style="cursor:pointer">OCF<b>.</b></div>
+    <div class="nav-links">
+      <button class="nav-link" onclick="go('home')" id="nl-home">Home</button>
+      <button class="nav-link" onclick="go('men')" id="nl-men">Men</button>
+      <button class="nav-link" onclick="go('women')" id="nl-women">Women</button>
+      <button class="nav-link" onclick="go('kids')" id="nl-kids">Kids</button>
+      <button class="nav-link" onclick="go('products')" id="nl-products">Shop All</button>
+      <button class="nav-link" onclick="go('collections')" id="nl-collections">Collections</button>
+      <button class="nav-link" onclick="go('bundles')" id="nl-bundles">Bundles</button>
+      <button class="nav-link" onclick="go('about')" id="nl-about">Our Story</button>
+      <button class="nav-link" onclick="go('account')" id="nl-account">My Account</button>
+      <button class="nav-link" onclick="go('admin')" id="nl-admin" style="display:none">⚙ Admin</button>
+    </div>
+    <div class="nav-right">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" id="searchInput" placeholder="Search…" oninput="doSearch(this.value)" onfocus="if(this.value)showDrop()" onblur="setTimeout(hideDrop,200)">
+        <div class="search-drop" id="searchDrop"></div>
+      </div>
+      <button class="btn-icon" onclick="go('wishlist')" title="Wishlist" id="wishBtn">♡</button>
+      <button class="btn-icon" onclick="showCompareModal()" title="Compare" id="compareBtn">⚖</button>
+      <button class="btn-icon" onclick="S.user?go('account'):openAuth()" id="authBtn" title="Account">👤</button>
+      <button class="btn-icon" style="position:relative" onclick="openCart()" title="Cart">
+        🛒<span class="cart-count" id="cartCount" style="display:none">0</span>
+      </button>
+      <button class="mobile-btn" onclick="openMMenu()">☰</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ANNOUNCE BAR -->
+<div id="announce">
+  🌿 Free shipping on orders above Br 15,000 &nbsp;·&nbsp; 
+  <a onclick="go('products')">New Arrivals Every Week</a> &nbsp;·&nbsp; 
+  Use code <strong>WELCOME10</strong> for 10% off
+</div>
+
+<!-- ═══════════════════════════════════════════
+     HOME PAGE
+═══════════════════════════════════════════ -->
+<div class="page active" id="page-home">
+  <!-- HERO -->
+  <section style="background:var(--black);padding:4rem 0 0">
+    <div class="container">
+      <div class="hero">
+        <div>
+          <div class="hero-badge">✦ Est. 2019 — Arba Minch, Ethiopia</div>
+          <h1 class="t-display-xl" style="color:var(--ivory);margin-bottom:1.25rem">
+            Oromo<br><span style="color:var(--gold)">Cultural</span><br>Fashion
+          </h1>
+          <p class="t-body" style="font-size:1rem;max-width:460px;margin-bottom:2rem">Handcrafted traditional clothing for Men, Women & Kids. From the five regions of Oromia to 30+ countries worldwide.</p>
+          <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:2rem">
+            <button class="btn btn-gold btn-lg" onclick="go('products')">Shop Now</button>
+            <button class="btn btn-outline btn-lg" onclick="go('collections')">View Collections</button>
+          </div>
+          <!-- Gender quick links -->
+          <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+            <button class="g-tab active" onclick="filterGender('all',this)">All</button>
+            <button class="g-tab" onclick="filterGender('men',this)">Men</button>
+            <button class="g-tab" onclick="filterGender('women',this)">Women</button>
+            <button class="g-tab" onclick="filterGender('kids',this)">Kids</button>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <img src="https://www.ethiopian.store/cdn/shop/files/il_fullxfull.5340932171_b7y9-837992.jpg" alt="Oromo Traditional Fashion" loading="eager">
+          <div class="hero-visual-overlay"></div>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div><div class="hero-stat-n">200+</div><div class="hero-stat-l">Artisan Partners</div></div>
+        <div><div class="hero-stat-n">30+</div><div class="hero-stat-l">Countries Shipped</div></div>
+        <div><div class="hero-stat-n">5,000+</div><div class="hero-stat-l">Happy Customers</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GENDER CATEGORY CARDS -->
+  <section class="section-sm" style="background:var(--ink);border-top:1px solid var(--border)">
+    <div class="container">
+      <div class="text-center" style="margin-bottom:2rem">
+        <div class="t-eyebrow">Shop By Gender & Age</div>
+        <h2 class="t-display" style="margin-top:.4rem">Find Your Style</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem">
+        <div class="gender-card" onclick="go('men')">
+          <div class="gender-card-icon">👔</div>
+          <div class="gender-card-title">Men's Fashion</div>
+          <p class="t-body" style="font-size:.78rem;margin:.4rem 0 .75rem">T-Shirts · Polo Shirts · Hoodies · Jackets · Traditional · Suits · Sportswear</p>
+          <div class="gender-card-count">7 Categories · 80+ Products</div>
+          <button class="btn btn-outline btn-sm" style="margin-top:1rem;width:100%">Shop Men →</button>
+        </div>
+        <div class="gender-card" onclick="go('women')">
+          <div class="gender-card-icon">👗</div>
+          <div class="gender-card-title">Women's Fashion</div>
+          <p class="t-body" style="font-size:.78rem;margin:.4rem 0 .75rem">Dresses · Skirts · Blouses · Hijabs · Traditional · Wedding · Sportswear</p>
+          <div class="gender-card-count">7 Categories · 120+ Products</div>
+          <button class="btn btn-gold btn-sm" style="margin-top:1rem;width:100%">Shop Women →</button>
+        </div>
+        <div class="gender-card" onclick="go('kids')">
+          <div class="gender-card-icon">🧒</div>
+          <div class="gender-card-title">Kids' Fashion</div>
+          <p class="t-body" style="font-size:.78rem;margin:.4rem 0 .75rem">Boys Wear · Girls Wear · School Uniforms · Traditional · Ages 2–15</p>
+          <div class="gender-card-count">4 Categories · 60+ Products</div>
+          <button class="btn btn-outline btn-sm" style="margin-top:1rem;width:100%">Shop Kids →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEW ARRIVALS + FEATURED TABS -->
+  <section class="section">
+    <div class="container">
+      <div class="section-hd">
+        <div>
+          <div class="t-eyebrow">Curated For You</div>
+          <h2>Featured Products</h2>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="f-pill active" onclick="filterHome(this,'all')">All</button>
+          <button class="f-pill" onclick="filterHome(this,'new')">New Arrivals</button>
+          <button class="f-pill" onclick="filterHome(this,'bestseller')">Best Sellers</button>
+          <button class="f-pill" onclick="filterHome(this,'sale')">On Sale</button>
+          <button class="f-pill" onclick="filterHome(this,'oromo')">Oromo Cultural</button>
+        </div>
+      </div>
+      <div id="homeGrid"><div class="spinner"></div></div>
+      <div class="text-center" style="margin-top:2.5rem">
+        <button class="btn btn-outline btn-lg" onclick="go('products')">View All Products →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- COUNTDOWN + SALE BANNER -->
+  <section style="background:var(--ink);padding:3rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <div class="container text-center">
+      <div class="t-eyebrow" style="margin-bottom:.75rem">Limited Time Offer</div>
+      <h2 class="t-display-sm" style="margin-bottom:.5rem">Irreecha Festival Sale — Up to 35% Off</h2>
+      <p class="t-body" style="margin-bottom:1.5rem">Celebrate Irreecha in authentic Oromo attire. Sale ends in:</p>
+      <div class="countdown" style="margin-bottom:1.5rem">
+        <div class="cd-unit"><div class="cd-num" id="cd-d">06</div><div class="cd-lbl">Days</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-unit"><div class="cd-num" id="cd-h">14</div><div class="cd-lbl">Hours</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-unit"><div class="cd-num" id="cd-m">32</div><div class="cd-lbl">Mins</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-unit"><div class="cd-num" id="cd-s">08</div><div class="cd-lbl">Secs</div></div>
+      </div>
+      <button class="btn btn-gold btn-lg" onclick="filterProducts('sale');go('products')">Shop Sale Items →</button>
+    </div>
+  </section>
+
+  <!-- COLLECTIONS PREVIEW -->
+  <section class="section">
+    <div class="container">
+      <div class="section-hd">
+        <div><div class="t-eyebrow">Regional Heritage</div><h2>Our Collections</h2></div>
+        <button class="btn btn-outline btn-sm" onclick="go('collections')">View All →</button>
+      </div>
+      <div class="col-grid">
+        <div class="col-card" onclick="go('collections')">
+          <div class="col-card-img"><img src="https://www.ethiopian.store/cdn/shop/files/il_fullxfull.5340931803_hd19-764744.jpg" alt="Wallagga" loading="lazy"></div>
+          <div class="col-card-body"><div class="col-card-region">Western Oromia</div><div class="col-card-name">Wallagga</div><div class="col-card-count">42 pieces</div></div>
+        </div>
+        <div class="col-card" onclick="go('collections')">
+          <div class="col-card-img"><img src="https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-8.jpg" alt="Shawaa" loading="lazy"></div>
+          <div class="col-card-body"><div class="col-card-region">Central Oromia</div><div class="col-card-name">Shawaa</div><div class="col-card-count">38 pieces</div></div>
+        </div>
+        <div class="col-card" onclick="go('collections')">
+          <div class="col-card-img"><img src="https://www.ethiopian.store/cdn/shop/files/il_fullxfull.5142065825_8z3q-975614.jpg" alt="Arsii" loading="lazy"></div>
+          <div class="col-card-body"><div class="col-card-region">Southeast Oromia</div><div class="col-card-name">Arsii</div><div class="col-card-count">31 pieces</div></div>
+        </div>
+        <div class="col-card" onclick="go('collections')">
+          <div class="col-card-img"><img src="https://www.ethiopian.store/cdn/shop/files/il_fullxfull.4895361274_ii1x-424988.jpg" alt="Harargee" loading="lazy"></div>
+          <div class="col-card-body"><div class="col-card-region">Eastern Oromia</div><div class="col-card-name">Harargee</div><div class="col-card-count">27 pieces</div></div>
+        </div>
+        <div class="col-card" onclick="go('collections')">
+          <div class="col-card-img"><img src="https://allaboutethio.com/images/modern-cultural-traditional-oromo-clothes-11.jpg" alt="Booranaa" loading="lazy"></div>
+          <div class="col-card-body"><div class="col-card-region">Southern Oromia</div><div class="col-card-name">Booranaa</div><div class="col-card-count">24 pieces</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BUNDLES HOME -->
+  <section class="section" style="background:var(--ink)">
+    <div class="container">
+      <div class="section-hd">
+        <div><div class="t-eyebrow">Maximum Value</div><h2>Bundle & Save</h2></div>
+        <button class="btn btn-outline btn-sm" onclick="go('bundles')">All Bundles →</button>
+      </div>
+      <div class="grid-3" id="homeBundles"><div class="spinner"></div></div>
+    </div>
+  </section>
+
+  <!-- NEWSLETTER -->
+  <div class="nl-section">
+    <div class="container">
+      <div class="nl-title">Join the OCF Community</div>
+      <p class="nl-sub">Get 10% off your first order + early access to new collections and cultural events</p>
+      <div class="nl-row">
+        <input class="nl-input" id="nlEmail" type="email" placeholder="Your email address">
+        <button class="btn btn-gold" onclick="subscribeNL()">Subscribe & Get 10% Off</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYMENT STRIP -->
+  <div class="pay-strip">
+    <div class="container"><div class="pay-chips">
+      <span style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Secure Payments</span>
+      <span class="pay-chip">CHAPA</span><span class="pay-chip">PAYPAL</span><span class="pay-chip">VISA</span>
+      <span class="pay-chip">MASTERCARD</span><span class="pay-chip">BANK TRANSFER</span><span class="pay-chip">CASH ON DELIVERY</span>
+      <span style="font-size:.72rem;color:var(--muted)">🔒 SSL Secured</span>
+    </div></div>
+  </div>
+</div><!-- /home -->
+
+<!-- ═══════════════════════════════════════════
+     MEN PAGE
+═══════════════════════════════════════════ -->
+<div class="page" id="page-men">
+  <!-- HERO -->
+  <div style="background:linear-gradient(135deg,var(--ink) 55%,rgba(43,92,43,.25));border-bottom:1px solid var(--border);padding:3.5rem 0 2.5rem">
+    <div class="container">
+      <div class="breadcrumb"><a onclick="go('home')">Home</a><span class="breadcrumb-sep">›</span><span>Men</span></div>
+      <div class="t-eyebrow">For Him</div>
+      <h1 class="t-display" style="margin-top:.4rem">Men's Fashion</h1>
+      <p class="t-body" style="margin-top:.5rem;max-width:520px">From ceremonial traditional wear to modern streetwear — authentic Oromo craftsmanship for every occasion.</p>
+      <div style="display:flex;gap:1rem;margin-top:1.25rem;flex-wrap:wrap">
+        <button class="pdf-btn" onclick="downloadPDF('men')">📄 Download Men's Catalog</button>
+        <button class="pdf-btn" onclick="go('size-guide')">📏 Men's Size Guide</button>
+        <button class="pdf-btn" onclick="go('contact')">✉ Custom Order</button>
+      </div>
+    </div>
+  </div>
+  <!-- USP STRIP -->
+  <div style="background:var(--ink2);border-bottom:1px solid var(--border);padding:.9rem 0">
+    <div class="container"><div style="display:flex;gap:2rem;flex-wrap:wrap;justify-content:center">
+      <span style="font-size:.75rem;color:var(--muted2);display:flex;align-items:center;gap:.4rem">🌿 <span>Handcrafted by master artisans</span></span>
+      <span style="font-size:.75rem;color:var(--muted2);display:flex;align-items:center;gap:.4rem">📏 <span>Sizes S → XXXL</span></span>
+      <span style="font-size:.75rem;color:var(--muted2);display:flex;align-items:center;gap:.4rem">✂️ <span>Custom sizing available</span></span>
+      <span style="font-size:.75rem;color:var(--muted2);display:flex;align-items:center;gap:.4rem">🚚 <span>Free shipping over Br 15,000</span></span>
+      <span style="font-size:.75rem;color:var(--muted2);display:flex;align-items:center;gap:.4rem">↩️ <span>30-day returns</span></span>
+    </div></div>
+  </div>
+  <!-- QUICK FILTER PILLS -->
+  <div style="padding:1rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+    <div class="container"><div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+      <span class="t-label" style="margin-right:.25rem">Quick:</span>
+      <button class="f-pill active" onclick="filterGenderQuick('men','all',this)">All</button>
+      <button class="f-pill" onclick="filterGenderQuick('men','new',this)">🆕 New</button>
+      <button class="f-pill" onclick="filterGenderQuick('men','bestseller',this)">🔥 Best Sellers</button>
+      <button class="f-pill" onclick="filterGenderQuick('men','sale',this)">💸 Sale</button>
+      <button class="f-pill" onclick="filterGenderQuick('men','oromo',this)">🌿 Oromo Cultural</button>
+      <button class="f-pill" onclick="filterGenderQuick('men','traditional',this)">👘 Traditional</button>
+      <button class="f-pill" onclick="filterGenderQuick('men','wedding',this)">💍 Wedding</button>
+    </div></div>
+  </div>
+  <section class="section"><div class="container">
+    <!-- Category tiles -->
+    <div style="margin-bottom:2rem">
+      <div class="t-label" style="margin-bottom:.75rem">Browse by Category</div>
+      <div class="cat-grid" id="menCatGrid"></div>
+    </div>
+    <div class="products-layout">
+      <aside class="sidebar" id="menSidebar"></aside>
+      <div>
+        <div class="flex-between" style="margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem">
+          <div id="menProdCount" style="font-size:.8rem;color:var(--muted)"></div>
+          <div style="display:flex;gap:.75rem;align-items:center">
+            <select class="form-control" style="width:auto;font-size:.78rem" id="menSort" onchange="loadGenderProducts('men',this.value)">
+              <option value="">Sort: Featured</option>
+              <option value="price-low">Price ↑</option>
+              <option value="price-high">Price ↓</option>
+              <option value="rating">Best Rated</option>
+              <option value="newest">Newest</option>
+            </select>
+          </div>
+        </div>
+        <div id="menProductsGrid" class="products-grid"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div></section>
+  <!-- MEN CARE STRIP -->
+  <div style="background:var(--ink);border-top:1px solid var(--border);padding:2.5rem 0">
+    <div class="container"><div class="grid-3 gap-3">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.25rem">
+        <div style="font-size:1.3rem;margin-bottom:.5rem">✂️</div>
+        <div style="font-size:.85rem;font-weight:700;margin-bottom:.3rem;color:var(--ivory2)">Custom Tailoring</div>
+        <div class="t-body" style="font-size:.75rem">All men's traditional garments available in custom measurements at no extra charge.</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.25rem">
+        <div style="font-size:1.3rem;margin-bottom:.5rem">📏</div>
+        <div style="font-size:.85rem;font-weight:700;margin-bottom:.3rem;color:var(--ivory2)">Men's Size Guide</div>
+        <div class="t-body" style="font-size:.75rem">Not sure of your size? Use our guide or WhatsApp us your chest and waist measurements.</div>
+        <button class="btn btn-outline btn-sm" style="margin-top:.75rem" onclick="go('size-guide')">View Size Guide</button>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.25rem">
+        <div style="font-size:1.3rem;margin-bottom:.5rem">💬</div>
+        <div style="font-size:.85rem;font-weight:700;margin-bottom:.3rem;color:var(--ivory2)">Style Advice</div>
+        <div class="t-body" style="font-size:.75rem">Our stylists help you choose the right outfit for weddings, Irreecha, graduation and more.</div>
+        <a href="https://wa.me/251900000000" target="_blank" class="btn btn-gold btn-sm" style="margin-top:.75rem">Chat on WhatsApp</a>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     WOMEN PAGE
+═══════════════════════════════════════════ -->
+<div class="page" id="page-women">
+  <!-- HERO -->
+  <div style="background:linear-gradient(135deg,var(--ink) 55%,rgba(123,77,46,.2));border-bottom:1px solid var(--border);padding:3.5rem 0 2.5rem">
+    <div class="container">
+      <div class="breadcrumb"><a onclick="go('home')">Home</a><span class="breadcrumb-sep">›</span><span>Women</span></div>
+      <div class="t-eyebrow">For Her</div>
+      <h1 class="t-display" style="margin-top:.4rem">Women's Fashion</h1>
+      <p class="t-body" style="margin-top:.5rem;max-width:560px">From the flowing Wandabii shawl to modern fusion dresses — celebrating every Oromo woman's beauty and heritage.</p>
+      <div style="display:flex;gap:1rem;margin-top:1.25rem;flex-wrap:wrap">
+        <button class="pdf-btn" onclick="downloadPDF('women')">📄 Download Women's Catalog</button>
+        <button class="pdf-btn" onclick="go('size-guide')">📏 Women's Size Guide</button>
+        <button class="pdf-btn" onclick="filterGenderQuick('women','wedding',document.createElement('button'));go('women')">💍 Bridal Collection</button>
+      </div>
+    </div>
+  </div>
+  <!-- USP STRIP -->
+  <div style="background:var(--ink2);border-bottom:1px solid var(--border);padding:.9rem 0">
+    <div class="container"><div style="display:flex;gap:2rem;flex-wrap:wrap;justify-content:center">
+      <span style="font-size:.75rem;color:var(--muted2);display:flex;align-items:center;gap:.4rem">👗 <span>7 categories for every occasion</span></span>
+      <span style="font-size:.75rem;color:var(--muted2);display:flex;align-items:center;gap:.4rem">📏 <span>Sizes XS → XXXL</span></span>
+      <span style="font-size:.75rem;color:var(--muted2);display:flex;align-items:center;gap:.4rem">✨ <span>Custom bridal orders</span></span>
+      <span style="font-size:.75rem;color:var(--muted2);display:flex;align-items:center;gap:.4rem">🚚 <span>Free shipping over Br 15,000</span></span>
+      <span style="font-size:.75rem;color:var(--muted2);display:flex;align-items:center;gap:.4rem">🌍 <span>Worldwide delivery</span></span>
+    </div></div>
+  </div>
+  <!-- QUICK FILTER PILLS -->
+  <div style="padding:1rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+    <div class="container"><div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+      <span class="t-label" style="margin-right:.25rem">Quick:</span>
+      <button class="f-pill active" onclick="filterGenderQuick('women','all',this)">All</button>
+      <button class="f-pill" onclick="filterGenderQuick('women','new',this)">🆕 New</button>
+      <button class="f-pill" onclick="filterGenderQuick('women','bestseller',this)">🔥 Best Sellers</button>
+      <button class="f-pill" onclick="filterGenderQuick('women','sale',this)">💸 Sale</button>
+      <button class="f-pill" onclick="filterGenderQuick('women','oromo',this)">🌿 Oromo Cultural</button>
+      <button class="f-pill" onclick="filterGenderQuick('women','wedding',this)">💍 Bridal</button>
+      <button class="f-pill" onclick="filterGenderQuick('women','hijab',this)">🧕 Hijabs</button>
+    </div></div>
+  </div>
+  <section class="section"><div class="container">
+    <div style="margin-bottom:2rem">
+      <div class="t-label" style="margin-bottom:.75rem">Browse by Category</div>
+      <div class="cat-grid" id="womenCatGrid"></div>
+    </div>
+    <div class="products-layout">
+      <aside class="sidebar" id="womenSidebar"></aside>
+      <div>
+        <div class="flex-between" style="margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem">
+          <div id="womenProdCount" style="font-size:.8rem;color:var(--muted)"></div>
+          <select class="form-control" style="width:auto;font-size:.78rem" id="womenSort" onchange="loadGenderProducts('women',this.value)">
+            <option value="">Sort: Featured</option>
+            <option value="price-low">Price ↑</option>
+            <option value="price-high">Price ↓</option>
+            <option value="rating">Best Rated</option>
+            <option value="newest">Newest</option>
+          </select>
+        </div>
+        <div id="womenProductsGrid" class="products-grid"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div></section>
+  <!-- BRIDAL STRIP -->
+  <div style="background:linear-gradient(135deg,rgba(212,168,67,.08),rgba(123,77,46,.12));border-top:1px solid var(--border);padding:2.75rem 0">
+    <div class="container"><div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center">
+      <div>
+        <div class="t-eyebrow" style="margin-bottom:.4rem">Custom Bridal</div>
+        <h2 class="t-display-sm" style="margin-bottom:.6rem">Your Dream Wedding Dress</h2>
+        <div class="divider-line"></div>
+        <p class="t-body" style="margin-bottom:1.25rem">Every OCF bridal dress is made-to-order at your exact measurements. Choose your region's embroidery style, thread color, and silhouette. WhatsApp us to start the process.</p>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+          <a href="https://wa.me/251900000000?text=I'm interested in a custom bridal dress" target="_blank" class="btn btn-gold">Book Bridal Consultation</a>
+          <button class="btn btn-outline" onclick="filterGenderQuick('women','wedding',{classList:{add:()=>{},toggle:()=>{},remove:()=>{}}});loadGenderProducts('women','')">View Bridal Collection</button>
+        </div>
+      </div>
+      <div class="grid-2 gap-2">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1rem;text-align:center"><div style="font-size:1.5rem;margin-bottom:.35rem">✂️</div><div style="font-size:.78rem;font-weight:700;color:var(--ivory2)">Custom Fit</div><div style="font-size:.7rem;color:var(--muted)">Made to your measurements</div></div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1rem;text-align:center"><div style="font-size:1.5rem;margin-bottom:.35rem">🪡</div><div style="font-size:.78rem;font-weight:700;color:var(--ivory2)">Gold Thread</div><div style="font-size:.7rem;color:var(--muted)">Hand-embroidered details</div></div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1rem;text-align:center"><div style="font-size:1.5rem;margin-bottom:.35rem">📦</div><div style="font-size:.78rem;font-weight:700;color:var(--ivory2)">2–4 Weeks</div><div style="font-size:.7rem;color:var(--muted)">Crafting time</div></div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1rem;text-align:center"><div style="font-size:1.5rem;margin-bottom:.35rem">🌍</div><div style="font-size:.78rem;font-weight:700;color:var(--ivory2)">Worldwide</div><div style="font-size:.7rem;color:var(--muted)">Express delivery available</div></div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     KIDS PAGE
+═══════════════════════════════════════════ -->
+<div class="page" id="page-kids">
+  <!-- HERO -->
+  <div style="background:linear-gradient(135deg,var(--ink) 55%,rgba(43,92,43,.2));border-bottom:1px solid var(--border);padding:3.5rem 0 2.5rem">
+    <div class="container">
+      <div class="breadcrumb"><a onclick="go('home')">Home</a><span class="breadcrumb-sep">›</span><span>Kids</span></div>
+      <div class="t-eyebrow">For Children</div>
+      <h1 class="t-display" style="margin-top:.4rem">Kids' Fashion</h1>
+      <p class="t-body" style="margin-top:.5rem;max-width:520px">Adorable traditional & school clothing for ages 2–15 years. Safe, soft fabrics with authentic Oromo embroidery in child-safe dyes.</p>
+      <div style="display:flex;gap:1rem;margin-top:1.25rem;flex-wrap:wrap">
+        <button class="pdf-btn" onclick="downloadPDF('kids')">📄 Download Kids' Catalog</button>
+        <button class="pdf-btn" onclick="go('size-guide')">📏 Kids' Size Guide</button>
+        <button class="pdf-btn" onclick="go('bundles')">🎁 Family Bundle</button>
+      </div>
+    </div>
+  </div>
+  <!-- SAFETY + SIZING STRIP -->
+  <div style="background:rgba(43,92,43,.12);border-bottom:1px solid rgba(43,92,43,.3);padding:.9rem 0">
+    <div class="container"><div style="display:flex;gap:2rem;flex-wrap:wrap;justify-content:center">
+      <span style="font-size:.75rem;color:var(--muted2);display:flex;align-items:center;gap:.4rem">🌿 <span>Child-safe, hypoallergenic dyes</span></span>
+      <span style="font-size:.75rem;color:var(--muted2);display:flex;align-items:center;gap:.4rem">🧒 <span>Ages 2–15 years (6 size bands)</span></span>
+      <span style="font-size:.75rem;color:var(--muted2);display:flex;align-items:center;gap:.4rem">🧺 <span>Machine washable</span></span>
+      <span style="font-size:.75rem;color:var(--muted2);display:flex;align-items:center;gap:.4rem">✨ <span>Matches adult collection</span></span>
+    </div></div>
+  </div>
+  <!-- AGE GROUP GUIDE -->
+  <div style="padding:1.5rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:.6rem;margin-bottom:.75rem">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:.65rem;text-align:center"><div style="font-size:.72rem;font-weight:700;color:var(--gold)">2–3 yrs</div><div style="font-size:.62rem;color:var(--muted);margin-top:.15rem">92–98 cm</div></div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:.65rem;text-align:center"><div style="font-size:.72rem;font-weight:700;color:var(--gold)">4–5 yrs</div><div style="font-size:.62rem;color:var(--muted);margin-top:.15rem">104–110 cm</div></div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:.65rem;text-align:center"><div style="font-size:.72rem;font-weight:700;color:var(--gold)">6–7 yrs</div><div style="font-size:.62rem;color:var(--muted);margin-top:.15rem">116–122 cm</div></div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:.65rem;text-align:center"><div style="font-size:.72rem;font-weight:700;color:var(--gold)">8–9 yrs</div><div style="font-size:.62rem;color:var(--muted);margin-top:.15rem">128–134 cm</div></div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:.65rem;text-align:center"><div style="font-size:.72rem;font-weight:700;color:var(--gold)">10–12 yrs</div><div style="font-size:.62rem;color:var(--muted);margin-top:.15rem">140–152 cm</div></div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:.65rem;text-align:center"><div style="font-size:.72rem;font-weight:700;color:var(--gold)">13–15 yrs</div><div style="font-size:.62rem;color:var(--muted);margin-top:.15rem">158–168 cm</div></div>
+      </div>
+      <div style="font-size:.7rem;color:var(--muted);text-align:center">Not sure of the size? <a onclick="go('size-guide')" style="color:var(--gold);cursor:pointer">View full kids' size chart →</a></div>
+    </div>
+  </div>
+  <section class="section"><div class="container">
+    <!-- Age filter -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.25rem;margin-bottom:2rem">
+      <div class="t-label" style="margin-bottom:.75rem">Filter by Age Group</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="age-btn active" onclick="filterKidsAge('all',this)">All Ages</button>
+        <button class="age-btn" onclick="filterKidsAge('2-3',this)">2–3 yrs</button>
+        <button class="age-btn" onclick="filterKidsAge('4-5',this)">4–5 yrs</button>
+        <button class="age-btn" onclick="filterKidsAge('6-7',this)">6–7 yrs</button>
+        <button class="age-btn" onclick="filterKidsAge('8-9',this)">8–9 yrs</button>
+        <button class="age-btn" onclick="filterKidsAge('10-12',this)">10–12 yrs</button>
+        <button class="age-btn" onclick="filterKidsAge('13-15',this)">13–15 yrs</button>
+      </div>
+    </div>
+    <div class="cat-grid" id="kidsCatGrid"></div>
+    <div class="products-layout">
+      <aside class="sidebar" id="kidsSidebar"></aside>
+      <div>
+        <div class="flex-between" style="margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem">
+          <div id="kidsProdCount" style="font-size:.8rem;color:var(--muted)"></div>
+          <select class="form-control" style="width:auto;font-size:.78rem" onchange="loadGenderProducts('kids',this.value)">
+            <option value="">Sort: Featured</option>
+            <option value="price-low">Price ↑</option>
+            <option value="price-high">Price ↓</option>
+            <option value="newest">Newest</option>
+          </select>
+        </div>
+        <div id="kidsProductsGrid" class="products-grid"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div></section>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SHOP ALL PAGE (with full filters)
+═══════════════════════════════════════════ -->
+<div class="page" id="page-products">
+  <div class="page-hero"><div class="container">
+    <div class="breadcrumb"><a onclick="go('home')">Home</a><span class="breadcrumb-sep">›</span><span>Shop All</span></div>
+    <div class="t-eyebrow">Handcrafted in Oromia</div>
+    <h1 class="t-display" style="margin-top:.4rem">All Products</h1>
+    <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap">
+      <button class="pdf-btn" onclick="downloadPDF('all')">📄 Full Catalog PDF</button>
+      <button class="pdf-btn" onclick="go('size-guide')">📏 Size Guide</button>
+    </div>
+  </div></div>
+  
+  <!-- Quick section filters -->
+  <div style="background:var(--ink);border-bottom:1px solid var(--border);padding:1rem 0">
+    <div class="container">
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+        <span class="t-label" style="margin-right:.25rem">Quick Filter:</span>
+        <button class="f-pill active" id="qf-all" onclick="quickFilter('all',this)">All</button>
+        <button class="f-pill" id="qf-new" onclick="quickFilter('new',this)">🆕 New Arrivals</button>
+        <button class="f-pill" id="qf-bestseller" onclick="quickFilter('bestseller',this)">🔥 Best Sellers</button>
+        <button class="f-pill" id="qf-sale" onclick="quickFilter('sale',this)">💸 Sale</button>
+        <button class="f-pill" id="qf-featured" onclick="quickFilter('featured',this)">⭐ Featured</button>
+        <button class="f-pill" id="qf-oromo" onclick="quickFilter('oromo',this)">🌿 Oromo Cultural</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="section"><div class="container">
+    <div class="products-layout">
+      <aside class="sidebar">
+        <!-- Gender Filter -->
+        <div class="sidebar-section">
+          <div class="t-label" style="margin-bottom:.75rem">Gender</div>
+          <label class="s-opt"><input type="checkbox" data-filter="gender" data-val="men" onchange="applyFilters()"> Men</label>
+          <label class="s-opt"><input type="checkbox" data-filter="gender" data-val="women" onchange="applyFilters()"> Women</label>
+          <label class="s-opt"><input type="checkbox" data-filter="gender" data-val="kids" onchange="applyFilters()"> Kids</label>
+        </div>
+        <!-- Category Filter -->
+        <div class="sidebar-section">
+          <div class="t-label" style="margin-bottom:.75rem">Category</div>
+          <div id="catFilterList">
+            <label class="s-opt"><input type="checkbox" data-filter="cat" data-val="traditional" onchange="applyFilters()"> Traditional Wear</label>
+            <label class="s-opt"><input type="checkbox" data-filter="cat" data-val="dress" onchange="applyFilters()"> Dresses</label>
+            <label class="s-opt"><input type="checkbox" data-filter="cat" data-val="shirt" onchange="applyFilters()"> Shirts & Tops</label>
+            <label class="s-opt"><input type="checkbox" data-filter="cat" data-val="jacket" onchange="applyFilters()"> Jackets & Outerwear</label>
+            <label class="s-opt"><input type="checkbox" data-filter="cat" data-val="suit" onchange="applyFilters()"> Suits & Formal</label>
+            <label class="s-opt"><input type="checkbox" data-filter="cat" data-val="sport" onchange="applyFilters()"> Sportswear</label>
+            <label class="s-opt"><input type="checkbox" data-filter="cat" data-val="wedding" onchange="applyFilters()"> Wedding</label>
+            <label class="s-opt"><input type="checkbox" data-filter="cat" data-val="accessories" onchange="applyFilters()"> Accessories</label>
+            <label class="s-opt"><input type="checkbox" data-filter="cat" data-val="uniform" onchange="applyFilters()"> School Uniforms</label>
+          </div>
+        </div>
+        <!-- Size Filter -->
+        <div class="sidebar-section">
+          <div class="t-label" style="margin-bottom:.75rem">Size</div>
+          <div style="margin-bottom:.5rem">
+            <div class="t-label" style="font-size:.6rem;margin-bottom:.35rem;color:var(--muted)">Adult Sizes</div>
+            <div class="size-filter-grid">
+              <div class="sfb" onclick="toggleSizeFilter(this,'XS')">XS</div>
+              <div class="sfb" onclick="toggleSizeFilter(this,'S')">S</div>
+              <div class="sfb" onclick="toggleSizeFilter(this,'M')">M</div>
+              <div class="sfb" onclick="toggleSizeFilter(this,'L')">L</div>
+              <div class="sfb" onclick="toggleSizeFilter(this,'XL')">XL</div>
+              <div class="sfb" onclick="toggleSizeFilter(this,'XXL')">XXL</div>
+              <div class="sfb" onclick="toggleSizeFilter(this,'XXXL')">XXXL</div>
+            </div>
+          </div>
+          <div style="margin-top:.5rem">
+            <div class="t-label" style="font-size:.6rem;margin-bottom:.35rem;color:var(--muted)">Kids Ages</div>
+            <div class="age-grid">
+              <div class="sfb" onclick="toggleSizeFilter(this,'2-3yr')">2–3</div>
+              <div class="sfb" onclick="toggleSizeFilter(this,'4-5yr')">4–5</div>
+              <div class="sfb" onclick="toggleSizeFilter(this,'6-7yr')">6–7</div>
+              <div class="sfb" onclick="toggleSizeFilter(this,'8-9yr')">8–9</div>
+              <div class="sfb" onclick="toggleSizeFilter(this,'10-12yr')">10–12</div>
+              <div class="sfb" onclick="toggleSizeFilter(this,'13-15yr')">13–15</div>
+            </div>
+          </div>
+        </div>
+        <!-- Color Filter -->
+        <div class="sidebar-section">
+          <div class="t-label" style="margin-bottom:.75rem">Color</div>
+          <div class="color-swatch-filter">
+            <div class="csf" style="background:#1a1a1a;border:2px solid #555" onclick="toggleColorFilter(this,'black')" title="Black"></div>
+            <div class="csf" style="background:#f0f0f0;border:2px solid #ccc" onclick="toggleColorFilter(this,'white')" title="White"></div>
+            <div class="csf" style="background:#c0392b" onclick="toggleColorFilter(this,'red')" title="Red"></div>
+            <div class="csf" style="background:#2980b9" onclick="toggleColorFilter(this,'blue')" title="Blue"></div>
+            <div class="csf" style="background:#27ae60" onclick="toggleColorFilter(this,'green')" title="Green"></div>
+            <div class="csf" style="background:#f1c40f" onclick="toggleColorFilter(this,'yellow')" title="Yellow"></div>
+            <div class="csf" style="background:#8B4513" onclick="toggleColorFilter(this,'brown')" title="Brown"></div>
+            <div class="csf" style="background:linear-gradient(135deg,#D4A843,#7B4D2E,#2B5C2B)" onclick="toggleColorFilter(this,'oromo')" title="Oromo Cultural"></div>
+          </div>
+        </div>
+        <!-- Price Filter -->
+        <div class="sidebar-section">
+          <div class="t-label" style="margin-bottom:.75rem">Price Range (Br)</div>
+          <input type="range" min="500" max="70000" step="500" value="70000" style="width:100%;accent-color:var(--gold)" id="priceRange" oninput="document.getElementById('priceVal').textContent='Up to Br '+parseInt(this.value).toLocaleString();applyFilters()">
+          <div id="priceVal" style="font-size:.75rem;color:var(--muted);margin-top:.35rem">Up to Br 70,000</div>
+        </div>
+        <!-- Collection Type -->
+        <div class="sidebar-section">
+          <div class="t-label" style="margin-bottom:.75rem">Collection</div>
+          <label class="s-opt"><input type="checkbox" data-filter="coll" data-val="new" onchange="applyFilters()"> New Arrivals</label>
+          <label class="s-opt"><input type="checkbox" data-filter="coll" data-val="bestseller" onchange="applyFilters()"> Best Sellers</label>
+          <label class="s-opt"><input type="checkbox" data-filter="coll" data-val="sale" onchange="applyFilters()"> On Sale</label>
+          <label class="s-opt"><input type="checkbox" data-filter="coll" data-val="featured" onchange="applyFilters()"> Featured</label>
+        </div>
+        <button class="btn btn-ghost btn-sm btn-block" onclick="clearFilters()">Clear All Filters</button>
+      </aside>
+      <div>
+        <div class="flex-between" style="margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem">
+          <div id="prodCount" style="font-size:.8rem;color:var(--muted)">Loading…</div>
+          <select class="form-control" style="width:auto;font-size:.78rem" id="mainSort" onchange="applyFilters()">
+            <option value="">Sort: Featured</option>
+            <option value="price-low">Price ↑</option>
+            <option value="price-high">Price ↓</option>
+            <option value="rating">Best Rated</option>
+            <option value="newest">Newest</option>
+          </select>
+        </div>
+        <div id="allProductsGrid" class="products-grid"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div></section>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     COLLECTIONS PAGE
+═══════════════════════════════════════════ -->
+<div class="page" id="page-collections">
+  <div style="background:linear-gradient(135deg,var(--ink),rgba(27,79,110,.2));padding:3.5rem 0 2.5rem;border-bottom:1px solid var(--border)">
+    <div class="container">
+      <div class="breadcrumb"><a onclick="go('home')">Home</a><span class="breadcrumb-sep">›</span><span>Collections</span></div>
+      <div class="t-eyebrow">Five Regions of Oromia</div>
+      <h1 class="t-display" style="margin-top:.4rem">Regional Collections</h1>
+      <p class="t-body" style="margin-top:.5rem;max-width:580px">Each Oromo region carries its own distinct weaving traditions, colour palettes, and symbolic patterns — passed down through generations. Explore them all.</p>
+      <div style="display:flex;gap:1rem;margin-top:1.25rem;flex-wrap:wrap">
+        <button class="pdf-btn" onclick="downloadPDF('all')">📄 Full Collections Catalog</button>
+      </div>
+    </div>
+  </div>
+  <!-- REGION MAP STRIP -->
+  <div style="background:var(--ink2);border-bottom:1px solid var(--border);padding:1rem 0">
+    <div class="container"><div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center">
+      <span class="badge badge-outline" style="cursor:pointer" onclick="document.getElementById('col-wallagga')?.scrollIntoView({behavior:'smooth'})">🌿 Wallagga</span>
+      <span class="badge badge-outline" style="cursor:pointer" onclick="document.getElementById('col-shawaa')?.scrollIntoView({behavior:'smooth'})">⭐ Shawaa</span>
+      <span class="badge badge-outline" style="cursor:pointer" onclick="document.getElementById('col-arsii')?.scrollIntoView({behavior:'smooth'})">🌊 Arsii</span>
+      <span class="badge badge-outline" style="cursor:pointer" onclick="document.getElementById('col-harargee')?.scrollIntoView({behavior:'smooth'})">☀️ Harargee</span>
+      <span class="badge badge-outline" style="cursor:pointer" onclick="document.getElementById('col-booranaa')?.scrollIntoView({behavior:'smooth'})">🏔 Booranaa</span>
+    </div></div>
+  </div>
+  <section class="section"><div class="container">
+    <div id="collectionsGrid" class="grid-2 gap-4"></div>
+    <!-- ARTISAN SECTION -->
+    <div style="margin-top:4rem;background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:2rem">
+      <div class="t-eyebrow" style="margin-bottom:.5rem">The People Behind the Craft</div>
+      <h2 class="t-display-sm" style="margin-bottom:.6rem">200+ Artisan Partners</h2>
+      <div class="divider-line"></div>
+      <p class="t-body" style="max-width:640px;margin-bottom:1.5rem">Every piece in every collection is handcrafted by skilled artisans from across Oromia. We pay fair wages, provide health benefits, and publish artisan profiles. When you buy OCF, you directly support a family in Oromia.</p>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem">
+        <div style="text-align:center"><div style="font-size:1.5rem;font-family:var(--font-display);font-weight:700;color:var(--gold)">200+</div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Artisan Partners</div></div>
+        <div style="text-align:center"><div style="font-size:1.5rem;font-family:var(--font-display);font-weight:700;color:var(--gold)">5</div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Oromo Regions</div></div>
+        <div style="text-align:center"><div style="font-size:1.5rem;font-family:var(--font-display);font-weight:700;color:var(--gold)">162</div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Unique Patterns</div></div>
+        <div style="text-align:center"><div style="font-size:1.5rem;font-family:var(--font-display);font-weight:700;color:var(--gold)">Fair</div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Wage Certified</div></div>
+      </div>
+    </div>
+  </div></section>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     BUNDLES PAGE
+═══════════════════════════════════════════ -->
+<div class="page" id="page-bundles">
+  <div style="background:linear-gradient(135deg,var(--ink),rgba(123,77,46,.18));padding:3.5rem 0 2.5rem;border-bottom:1px solid var(--border)">
+    <div class="container">
+      <div class="breadcrumb"><a onclick="go('home')">Home</a><span class="breadcrumb-sep">›</span><span>Bundles</span></div>
+      <div class="t-eyebrow">Save Up To 33%</div>
+      <h1 class="t-display" style="margin-top:.4rem">Bundle & Save</h1>
+      <p class="t-body" style="margin-top:.5rem;max-width:520px">Curated sets for families, weddings, and community events. More pieces, less cost, more cultural pride.</p>
+    </div>
+  </div>
+  <!-- BUNDLE COMPARISON TABLE -->
+  <div style="background:var(--ink2);border-bottom:1px solid var(--border);padding:1.5rem 0;overflow-x:auto">
+    <div class="container">
+      <table style="width:100%;border-collapse:collapse;min-width:600px;font-size:.78rem">
+        <thead><tr>
+          <th style="text-align:left;padding:.6rem;color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border)">Feature</th>
+          <th style="text-align:center;padding:.6rem;color:var(--gold);font-size:.75rem;font-weight:700;border-bottom:1px solid var(--border)">👨‍👩‍👧‍👦 Family</th>
+          <th style="text-align:center;padding:.6rem;color:var(--gold);font-size:.75rem;font-weight:700;border-bottom:1px solid var(--border);background:rgba(212,168,67,.06)">💍 Wedding ⭐</th>
+          <th style="text-align:center;padding:.6rem;color:var(--gold);font-size:.75rem;font-weight:700;border-bottom:1px solid var(--border)">🌿 Irreecha</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="padding:.55rem;color:var(--muted2)">Outfits included</td><td style="text-align:center;padding:.55rem">5</td><td style="text-align:center;padding:.55rem;background:rgba(212,168,67,.04)">4 + accessories</td><td style="text-align:center;padding:.55rem">12</td></tr>
+          <tr><td style="padding:.55rem;color:var(--muted2)">Custom tailoring</td><td style="text-align:center;padding:.55rem">✓</td><td style="text-align:center;padding:.55rem;background:rgba(212,168,67,.04)">✓ Full custom</td><td style="text-align:center;padding:.55rem">–</td></tr>
+          <tr><td style="padding:.55rem;color:var(--muted2)">Gift wrapping</td><td style="text-align:center;padding:.55rem">✓</td><td style="text-align:center;padding:.55rem;background:rgba(212,168,67,.04)">✓ Premium box</td><td style="text-align:center;padding:.55rem">✓</td></tr>
+          <tr><td style="padding:.55rem;color:var(--muted2)">Free worldwide shipping</td><td style="text-align:center;padding:.55rem">✓</td><td style="text-align:center;padding:.55rem;background:rgba(212,168,67,.04)">✓</td><td style="text-align:center;padding:.55rem">✓</td></tr>
+          <tr><td style="padding:.55rem;color:var(--muted2)">Savings</td><td style="text-align:center;padding:.55rem;color:var(--green-light)">Br 17,000</td><td style="text-align:center;padding:.55rem;background:rgba(212,168,67,.04);color:var(--gold);font-weight:700">Br 15,000</td><td style="text-align:center;padding:.55rem;color:var(--green-light)">Br 48,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <section class="section"><div class="container">
+    <div id="bundlesPageGrid"></div>
+    <!-- CUSTOM BUNDLE CTA -->
+    <div style="background:linear-gradient(135deg,rgba(212,168,67,.08),rgba(43,92,43,.1));border:1px solid var(--border2);border-radius:var(--r2);padding:2.5rem;text-align:center;margin-top:2rem">
+      <div style="font-size:2rem;margin-bottom:.75rem">✉️</div>
+      <h3 class="t-display-sm" style="margin-bottom:.5rem">Need a Custom Bundle?</h3>
+      <p class="t-body" style="max-width:500px;margin:0 auto 1.5rem">Planning a large community event, company gift, or wedding with 20+ guests? We build fully custom bundles at wholesale prices.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+        <a href="https://wa.me/251900000000?text=I need a custom bundle for an event" target="_blank" class="btn btn-gold">💬 WhatsApp for Custom Bundle</a>
+        <button class="btn btn-outline" onclick="go('contact')">✉ Send Us a Message</button>
+      </div>
+    </div>
+  </div></section>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     ABOUT PAGE
+═══════════════════════════════════════════ -->
+<div class="page" id="page-about">
+  <div style="background:linear-gradient(145deg,var(--black),var(--ink));padding:5rem 0;text-align:center;border-bottom:1px solid var(--border)">
+    <div class="t-eyebrow">Est. 2019 — Arba Minch, Ethiopia</div>
+    <h1 class="t-display-xl" style="margin-top:.6rem;color:var(--ivory)">Our Story</h1>
+    <p class="t-body" style="max-width:520px;margin:.75rem auto 0">From a small workshop in Arba Minch to customers in 30+ countries — preserving Oromo culture one garment at a time.</p>
+  </div>
+
+  <!-- STORY SECTION -->
+  <section class="section"><div class="container" style="max-width:1100px">
+    <div class="grid-2 gap-4" style="align-items:start">
+      <div>
+        <h2 class="t-display-sm" style="margin-bottom:.75rem">How It All Started</h2>
+        <div class="divider-line"></div>
+        <p class="t-body" style="margin-bottom:1rem">OCF was founded in 2019 by a team of Oromo cultural enthusiasts and fashion designers who saw a gap: the diaspora community desperately wanted authentic traditional clothing but had no reliable source.</p>
+        <p class="t-body" style="margin-bottom:1rem">What began as a small workshop connecting 12 artisans to diaspora customers has grown into a platform serving 200+ artisan partners across five Oromo regions, with customers in 30+ countries.</p>
+        <p class="t-body">We believe that fashion is one of the most powerful vehicles of cultural identity. Every OCF garment is not just clothing — it's a statement, a memory, and a connection to heritage.</p>
+      </div>
+      <div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem;margin-bottom:1rem">
+          <div class="t-label" style="margin-bottom:1rem">Our Journey</div>
+          <div style="display:flex;flex-direction:column;gap:.85rem">
+            <div style="display:flex;gap:1rem"><div style="font-size:.68rem;font-weight:700;color:var(--gold);width:40px;flex-shrink:0">2019</div><div class="t-body" style="font-size:.78rem">Founded with 12 artisan partners in Arba Minch</div></div>
+            <div style="display:flex;gap:1rem"><div style="font-size:.68rem;font-weight:700;color:var(--gold);width:40px;flex-shrink:0">2020</div><div class="t-body" style="font-size:.78rem">First 100 international diaspora customers</div></div>
+            <div style="display:flex;gap:1rem"><div style="font-size:.68rem;font-weight:700;color:var(--gold);width:40px;flex-shrink:0">2021</div><div class="t-body" style="font-size:.78rem">Expanded to all 5 Oromo regions; 80+ artisans</div></div>
+            <div style="display:flex;gap:1rem"><div style="font-size:.68rem;font-weight:700;color:var(--gold);width:40px;flex-shrink:0">2022</div><div class="t-body" style="font-size:.78rem">Launched worldwide shipping to 30+ countries</div></div>
+            <div style="display:flex;gap:1rem"><div style="font-size:.68rem;font-weight:700;color:var(--gold);width:40px;flex-shrink:0">2023</div><div class="t-body" style="font-size:.78rem">Launched Kids & Bridal collections</div></div>
+            <div style="display:flex;gap:1rem"><div style="font-size:.68rem;font-weight:700;color:var(--gold);width:40px;flex-shrink:0">2024</div><div class="t-body" style="font-size:.78rem">200+ artisan partners · 5,000+ happy customers</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- VALUES -->
+  <section style="background:var(--ink);padding:3.5rem 0;border-top:1px solid var(--border)">
+    <div class="container">
+      <div class="text-center" style="margin-bottom:2.5rem">
+        <div class="t-eyebrow">What We Stand For</div>
+        <h2 class="t-display-sm" style="margin-top:.4rem">Our Values</h2>
+      </div>
+      <div class="grid-4">
+        <div style="text-align:center;padding:1.5rem">
+          <div style="font-size:2rem;margin-bottom:.75rem">🌿</div>
+          <div style="font-size:.88rem;font-weight:700;margin-bottom:.35rem;color:var(--ivory2)">Cultural Preservation</div>
+          <div class="t-body" style="font-size:.75rem">Documenting and celebrating every regional Oromo weaving tradition before they are lost.</div>
+        </div>
+        <div style="text-align:center;padding:1.5rem">
+          <div style="font-size:2rem;margin-bottom:.75rem">⚖️</div>
+          <div style="font-size:.88rem;font-weight:700;margin-bottom:.35rem;color:var(--ivory2)">Fair Trade</div>
+          <div class="t-body" style="font-size:.75rem">Every artisan earns a fair, living wage. We are fair-wage certified and publish artisan profiles.</div>
+        </div>
+        <div style="text-align:center;padding:1.5rem">
+          <div style="font-size:2rem;margin-bottom:.75rem">🌍</div>
+          <div style="font-size:.88rem;font-weight:700;margin-bottom:.35rem;color:var(--ivory2)">Global Access</div>
+          <div class="t-body" style="font-size:.75rem">Making authentic Oromo clothing accessible to the diaspora and culture lovers worldwide.</div>
+        </div>
+        <div style="text-align:center;padding:1.5rem">
+          <div style="font-size:2rem;margin-bottom:.75rem">♻️</div>
+          <div style="font-size:.88rem;font-weight:700;margin-bottom:.35rem;color:var(--ivory2)">Sustainability</div>
+          <div class="t-body" style="font-size:.75rem">Natural plant-based dyes, handwoven cotton, zero synthetic fast-fashion materials.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="section" style="border-top:1px solid var(--border)">
+    <div class="container">
+      <div class="text-center" style="margin-bottom:2.5rem">
+        <div class="t-eyebrow">Customer Stories</div>
+        <h2 class="t-display-sm" style="margin-top:.4rem">What Our Customers Say</h2>
+      </div>
+      <div class="grid-3 gap-3">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem">
+          <div style="color:var(--gold);font-size:.85rem;margin-bottom:.75rem">★★★★★</div>
+          <p style="font-size:.82rem;color:var(--muted2);line-height:1.7;margin-bottom:1rem">"My wedding dress was the most beautiful thing I've ever worn. Every guest asked where I got it. OCF made our wedding truly Oromo."</p>
+          <div style="display:flex;align-items:center;gap:.65rem"><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--oromo-earth));display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--black)">AH</div><div><div style="font-size:.78rem;font-weight:600">Ayantu Hunduma</div><div style="font-size:.65rem;color:var(--muted)">Minneapolis, USA · Bride 2023</div></div></div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem">
+          <div style="color:var(--gold);font-size:.85rem;margin-bottom:.75rem">★★★★★</div>
+          <p style="font-size:.82rem;color:var(--muted2);line-height:1.7;margin-bottom:1rem">"Ordered the Family Bundle for our community Irreecha in Toronto. All 5 outfits arrived in 8 days, perfectly packaged. Quality exceeded expectations."</p>
+          <div style="display:flex;align-items:center;gap:.65rem"><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--oromo-sky));display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:white">DG</div><div><div style="font-size:.78rem;font-weight:600">Dawit Girma</div><div style="font-size:.65rem;color:var(--muted)">Toronto, Canada</div></div></div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem">
+          <div style="color:var(--gold);font-size:.85rem;margin-bottom:.75rem">★★★★★</div>
+          <p style="font-size:.82rem;color:var(--muted2);line-height:1.7;margin-bottom:1rem">"I've bought from OCF three times. Every piece is better than the last. The Wandabii shawl is an heirloom I'll pass to my daughter."</p>
+          <div style="display:flex;align-items:center;gap:.65rem"><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--oromo-earth));display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:white">FB</div><div><div style="font-size:.78rem;font-weight:600">Falmata Bekele</div><div style="font-size:.65rem;color:var(--muted)">Stockholm, Sweden</div></div></div>
+        </div>
+      </div>
+      <div class="text-center" style="margin-top:2.5rem">
+        <button class="btn btn-outline" onclick="go('products')">Shop Now & Write Your Story →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRESS / CERTIFICATIONS -->
+  <div style="background:var(--ink);border-top:1px solid var(--border);padding:2rem 0">
+    <div class="container"><div style="display:flex;gap:2rem;flex-wrap:wrap;justify-content:center;align-items:center">
+      <span style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">As Seen In:</span>
+      <span style="font-size:.78rem;font-weight:700;color:var(--muted2)">Addis Fortune</span>
+      <span style="font-size:.78rem;font-weight:700;color:var(--muted2)">Ethiopian Airlines Magazine</span>
+      <span style="font-size:.78rem;font-weight:700;color:var(--muted2)">Oromo Voice</span>
+      <span style="font-size:.78rem;font-weight:700;color:var(--muted2)">Horn of Africa Fashion Week</span>
+    </div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     CONTACT PAGE
+═══════════════════════════════════════════ -->
+<div class="page" id="page-contact">
+  <div class="page-hero"><div class="container">
+    <div class="breadcrumb"><a onclick="go('home')">Home</a><span class="breadcrumb-sep">›</span><span>Contact</span></div>
+    <div class="t-eyebrow">Get in Touch</div>
+    <h1 class="t-display" style="margin-top:.4rem">Contact Us</h1>
+  </div></div>
+  <section class="section"><div class="container">
+    <div class="grid-2 gap-4">
+      <div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem;margin-bottom:1rem"><div style="font-size:1.2rem;margin-bottom:.5rem">💬</div><div style="font-size:.85rem;font-weight:600;margin-bottom:.3rem">WhatsApp (Fastest)</div><div class="t-body" style="font-size:.8rem">Chat with us directly for instant answers.<br><a href="https://wa.me/251900000000" style="color:var(--gold)">+251 900 000 000</a></div></div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem;margin-bottom:1rem"><div style="font-size:1.2rem;margin-bottom:.5rem">📧</div><div style="font-size:.85rem;font-weight:600;margin-bottom:.3rem">Email</div><div class="t-body" style="font-size:.8rem">hello@oromoculturalfashion.com<br>We respond within 24 hours.</div></div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem"><div style="font-size:1.2rem;margin-bottom:.5rem">📍</div><div style="font-size:.85rem;font-weight:600;margin-bottom:.3rem">Our Workshop</div><div class="t-body" style="font-size:.8rem">Arba Minch, Southern Ethiopia<br>Visits by appointment only.</div></div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:2rem">
+        <h2 class="t-display-sm" style="margin-bottom:1.5rem">Send a Message</h2>
+        <div class="form-group"><label class="form-label">Full Name</label><input class="form-control" type="text" placeholder="Your full name" id="c-name"></div>
+        <div class="form-group"><label class="form-label">Email Address</label><input class="form-control" type="email" placeholder="your@email.com" id="c-email"></div>
+        <div class="form-group"><label class="form-label">Phone / WhatsApp</label><input class="form-control" type="tel" placeholder="+1 555 000 0000" id="c-phone"></div>
+        <div class="form-group"><label class="form-label">Subject</label>
+          <select class="form-control" id="c-subject"><option value="">Select subject</option><option>Order Inquiry</option><option>Custom Order</option><option>Wholesale / Bulk</option><option>Returns & Exchanges</option><option>Shipping & Tracking</option><option>Sizing Help</option><option>Other</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Message</label><textarea class="form-control" rows="4" placeholder="How can we help you?" id="c-msg" style="resize:vertical"></textarea></div>
+        <button class="btn btn-gold btn-block" onclick="submitContact()">Send Message</button>
+      </div>
+    </div>
+  </div></section>
+  <!-- ORDER TRACKING -->
+  <section style="background:var(--ink);border-top:1px solid var(--border);padding:3rem 0">
+    <div class="container" style="max-width:720px">
+      <div class="t-eyebrow" style="margin-bottom:.4rem">Already Ordered?</div>
+      <div id="orderTrackWidget"></div>
+    </div>
+  </section>
+  <!-- WORKING HOURS + MAP -->
+  <section style="padding:3rem 0;border-top:1px solid var(--border)">
+    <div class="container">
+      <div class="grid-2 gap-4">
+        <div>
+          <div class="t-label" style="margin-bottom:.75rem">Business Hours (EAT — UTC+3)</div>
+          <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+            <tr><td style="padding:.4rem 0;color:var(--muted2);border-bottom:1px solid rgba(255,255,255,.04)">Monday – Friday</td><td style="text-align:right;padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.04)">8:00 AM – 8:00 PM</td></tr>
+            <tr><td style="padding:.4rem 0;color:var(--muted2);border-bottom:1px solid rgba(255,255,255,.04)">Saturday</td><td style="text-align:right;padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.04)">9:00 AM – 6:00 PM</td></tr>
+            <tr><td style="padding:.4rem 0;color:var(--muted2)">Sunday</td><td style="text-align:right;padding:.4rem 0">10:00 AM – 4:00 PM</td></tr>
+          </table>
+          <div style="margin-top:1rem;background:rgba(43,92,43,.1);border:1px solid rgba(43,92,43,.3);border-radius:var(--r);padding:.75rem;font-size:.75rem;color:var(--muted2)">
+            🌿 WhatsApp responses typically within <strong style="color:var(--ivory2)">30 minutes</strong> during business hours.
+          </div>
+        </div>
+        <div>
+          <div class="t-label" style="margin-bottom:.75rem">Social Media</div>
+          <div style="display:flex;flex-direction:column;gap:.6rem">
+            <a href="#" style="display:flex;align-items:center;gap:.75rem;color:var(--muted2);font-size:.82rem;transition:color var(--t)" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted2)'"><span style="width:32px;text-align:center;font-size:1rem">📸</span>@oromoculturalfashion</a>
+            <a href="#" style="display:flex;align-items:center;gap:.75rem;color:var(--muted2);font-size:.82rem;transition:color var(--t)" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted2)'"><span style="width:32px;text-align:center;font-size:1rem">🎵</span>@ocfashion</a>
+            <a href="#" style="display:flex;align-items:center;gap:.75rem;color:var(--muted2);font-size:.82rem;transition:color var(--t)" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted2)'"><span style="width:32px;text-align:center;font-size:1rem">📘</span>Oromo Cultural Fashion</a>
+            <a href="#" style="display:flex;align-items:center;gap:.75rem;color:var(--muted2);font-size:.82rem;transition:color var(--t)" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted2)'"><span style="width:32px;text-align:center;font-size:1rem">▶</span>OCF Official</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     FAQ PAGE
+═══════════════════════════════════════════ -->
+<div class="page" id="page-faq">
+  <div style="background:var(--ink);padding:3.5rem 0 2.5rem;border-bottom:1px solid var(--border)">
+    <div class="container">
+      <div class="breadcrumb"><a onclick="go('home')">Home</a><span class="breadcrumb-sep">›</span><span>FAQ</span></div>
+      <div class="t-eyebrow">Help Center</div>
+      <h1 class="t-display" style="margin-top:.4rem">Frequently Asked Questions</h1>
+      <p class="t-body" style="margin-top:.5rem">Can't find your answer? <a href="https://wa.me/251900000000" target="_blank" style="color:var(--gold)">WhatsApp us</a> or <a onclick="go('contact')" style="color:var(--gold);cursor:pointer">send a message →</a></p>
+    </div>
+  </div>
+  <section class="section"><div class="container">
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:3rem;align-items:start">
+      <!-- FAQ category nav -->
+      <div style="position:sticky;top:80px">
+        <div class="t-label" style="margin-bottom:.75rem">Topics</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem">
+          <button class="f-pill active" style="text-align:left;justify-content:flex-start" onclick="filterFAQ('all',this)">All Questions</button>
+          <button class="f-pill" style="text-align:left;justify-content:flex-start" onclick="filterFAQ('sizing',this)">📏 Sizing</button>
+          <button class="f-pill" style="text-align:left;justify-content:flex-start" onclick="filterFAQ('shipping',this)">🚚 Shipping</button>
+          <button class="f-pill" style="text-align:left;justify-content:flex-start" onclick="filterFAQ('returns',this)">↩️ Returns</button>
+          <button class="f-pill" style="text-align:left;justify-content:flex-start" onclick="filterFAQ('payment',this)">💳 Payment</button>
+          <button class="f-pill" style="text-align:left;justify-content:flex-start" onclick="filterFAQ('custom',this)">✂️ Custom Orders</button>
+          <button class="f-pill" style="text-align:left;justify-content:flex-start" onclick="filterFAQ('product',this)">🌿 Products</button>
+        </div>
+        <div style="margin-top:2rem;background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.1rem">
+          <div style="font-size:.8rem;font-weight:700;margin-bottom:.4rem;color:var(--ivory2)">Still have questions?</div>
+          <p style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem">Our team responds within 2 hours on WhatsApp.</p>
+          <a href="https://wa.me/251900000000" target="_blank" class="btn btn-gold btn-sm btn-block">💬 Chat Now</a>
+        </div>
+      </div>
+      <div style="max-width:680px"><div id="faqContainer"></div></div>
+    </div>
+  </div></section>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SIZE GUIDE PAGE
+═══════════════════════════════════════════ -->
+<div class="page" id="page-size-guide">
+  <div class="page-hero"><div class="container">
+    <div class="t-eyebrow">Sizing</div>
+    <h1 class="t-display" style="margin-top:.4rem">Size Guide</h1>
+    <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap">
+      <button class="pdf-btn" onclick="downloadPDF('size-guide')">📄 Download Size Guide PDF</button>
+    </div>
+  </div></div>
+  <section class="section"><div class="container" style="max-width:900px">
+    <div style="display:flex;gap:.5rem;margin-bottom:2rem;flex-wrap:wrap">
+      <button class="f-pill active" onclick="showSizeTab('women',this)">Women's Sizes</button>
+      <button class="f-pill" onclick="showSizeTab('men',this)">Men's Sizes</button>
+      <button class="f-pill" onclick="showSizeTab('kids',this)">Children's Sizes</button>
+    </div>
+    <div id="sizeTabWomen">
+      <h3 class="t-display-sm" style="margin-bottom:1rem">Women's Sizes</h3>
+      <div style="overflow-x:auto;margin-bottom:2rem"><table class="size-table">
+        <tr><th>Size</th><th>Bust (in)</th><th>Waist (in)</th><th>Hips (in)</th><th>Dress Length</th><th>US Size</th></tr>
+        <tr><td>XS</td><td>30–32</td><td>24–26</td><td>34–36</td><td>52–54"</td><td>2–4</td></tr>
+        <tr><td>S</td><td>32–34</td><td>26–28</td><td>36–38</td><td>54–56"</td><td>4–6</td></tr>
+        <tr><td>M</td><td>34–36</td><td>28–30</td><td>38–40</td><td>55–57"</td><td>8–10</td></tr>
+        <tr><td>L</td><td>36–38</td><td>30–32</td><td>40–42</td><td>56–58"</td><td>12–14</td></tr>
+        <tr><td>XL</td><td>38–40</td><td>32–34</td><td>42–44</td><td>57–59"</td><td>16–18</td></tr>
+        <tr><td>XXL</td><td>40–42</td><td>34–36</td><td>44–46</td><td>58–60"</td><td>20–22</td></tr>
+        <tr><td>XXXL</td><td>42–44</td><td>36–38</td><td>46–48</td><td>59–61"</td><td>24–26</td></tr>
+      </table></div>
+    </div>
+    <div id="sizeTabMen" class="hidden">
+      <h3 class="t-display-sm" style="margin-bottom:1rem">Men's Sizes</h3>
+      <div style="overflow-x:auto;margin-bottom:2rem"><table class="size-table">
+        <tr><th>Size</th><th>Chest (in)</th><th>Waist (in)</th><th>Shoulder</th><th>Height</th></tr>
+        <tr><td>S</td><td>36–38</td><td>30–32</td><td>17–17.5"</td><td>5'6"–5'8"</td></tr>
+        <tr><td>M</td><td>38–40</td><td>32–34</td><td>17.5–18"</td><td>5'8"–5'10"</td></tr>
+        <tr><td>L</td><td>40–42</td><td>34–36</td><td>18–18.5"</td><td>5'10"–6'0"</td></tr>
+        <tr><td>XL</td><td>42–44</td><td>36–38</td><td>18.5–19"</td><td>6'0"–6'2"</td></tr>
+        <tr><td>XXL</td><td>44–46</td><td>38–40</td><td>19–19.5"</td><td>6'2"–6'4"</td></tr>
+        <tr><td>XXXL</td><td>46–48</td><td>40–42</td><td>19.5–20"</td><td>6'4"+</td></tr>
+      </table></div>
+    </div>
+    <div id="sizeTabKids" class="hidden">
+      <h3 class="t-display-sm" style="margin-bottom:1rem">Children's Sizes</h3>
+      <div style="overflow-x:auto;margin-bottom:2rem"><table class="size-table">
+        <tr><th>Age</th><th>Height (cm)</th><th>Chest (cm)</th><th>Waist (cm)</th><th>Size Label</th></tr>
+        <tr><td>2–3 yrs</td><td>92–98</td><td>52–54</td><td>50–52</td><td>2-3Y</td></tr>
+        <tr><td>4–5 yrs</td><td>104–110</td><td>56–58</td><td>52–54</td><td>4-5Y</td></tr>
+        <tr><td>6–7 yrs</td><td>116–122</td><td>60–62</td><td>54–56</td><td>6-7Y</td></tr>
+        <tr><td>8–9 yrs</td><td>128–134</td><td>64–66</td><td>57–59</td><td>8-9Y</td></tr>
+        <tr><td>10–12 yrs</td><td>140–152</td><td>68–72</td><td>60–64</td><td>10-12Y</td></tr>
+        <tr><td>13–15 yrs</td><td>158–168</td><td>76–82</td><td>64–68</td><td>13-15Y</td></tr>
+      </table></div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem">
+      <strong style="font-size:.85rem">Not sure about sizing?</strong>
+      <p class="t-body" style="margin-top:.3rem">WhatsApp us your measurements and we'll recommend the perfect size. Custom sizing available for orders above Br 20,000. <a href="https://wa.me/251900000000" style="color:var(--gold)">Chat now →</a></p>
+    </div>
+  </div></section>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     WISHLIST PAGE
+═══════════════════════════════════════════ -->
+<div class="page" id="page-wishlist">
+  <div style="background:var(--ink);padding:3rem 0 2rem;border-bottom:1px solid var(--border)">
+    <div class="container">
+      <div class="breadcrumb"><a onclick="go('home')">Home</a><span class="breadcrumb-sep">›</span><span>Wishlist</span></div>
+      <div class="flex-between" style="flex-wrap:wrap;gap:1rem">
+        <div>
+          <div class="t-eyebrow">Saved Items</div>
+          <h1 class="t-display" style="margin-top:.4rem">My Wishlist <span id="wishCount" style="font-size:1rem;color:var(--muted);font-family:var(--font-body);font-weight:400"></span></h1>
+        </div>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+          <button class="btn btn-gold" onclick="addAllWishToCart()" id="wishAddAllBtn" style="display:none">🛒 Add All to Cart</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearWishlist()" id="wishClearBtn" style="display:none">🗑 Clear Wishlist</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <section class="section"><div class="container">
+    <div id="wishlistGrid" class="products-grid"></div>
+  </div></section>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     CHECKOUT PAGE
+═══════════════════════════════════════════ -->
+<div class="page" id="page-checkout">
+  <div style="padding:1.5rem 0;border-bottom:1px solid var(--border)"><div class="container">
+    <button onclick="go('products')" style="background:none;color:var(--gold);font-size:.82rem;cursor:pointer;border:none">← Continue Shopping</button>
+  </div></div>
+  <div class="checkout-wrap">
+    <div class="checkout-steps" id="cSteps">
+      <div class="c-step active" id="cs1"><div class="step-circle">1</div> Cart</div>
+      <div class="step-sep"></div>
+      <div class="c-step" id="cs2"><div class="step-circle">2</div> Shipping</div>
+      <div class="step-sep"></div>
+      <div class="c-step" id="cs3"><div class="step-circle">3</div> Payment</div>
+      <div class="step-sep"></div>
+      <div class="c-step" id="cs4"><div class="step-circle">✓</div> Confirmed</div>
+    </div>
+    <div id="checkoutContent"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     ACCOUNT PAGE
+═══════════════════════════════════════════ -->
+<div class="page" id="page-account">
+  <div style="background:var(--ink);padding:3rem 0 2rem;border-bottom:1px solid var(--border)">
+    <div class="container">
+      <div class="breadcrumb"><a onclick="go('home')">Home</a><span class="breadcrumb-sep">›</span><span>My Account</span></div>
+      <div class="t-eyebrow">My Account</div>
+      <h1 class="t-display" id="acctName" style="margin-top:.4rem">Welcome</h1>
+    </div>
+  </div>
+  <section class="section"><div class="container">
+    <div style="display:grid;grid-template-columns:220px 1fr;gap:2rem;align-items:start" id="acctGrid">
+      <!-- Sidebar nav -->
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1rem;position:sticky;top:80px">
+        <div style="display:flex;flex-direction:column;gap:.2rem">
+          <button onclick="showAcctTab('orders')" class="s-opt" style="width:100%;justify-content:flex-start;padding:.55rem .6rem;border-radius:var(--r)">📦 My Orders</button>
+          <button onclick="showAcctTab('wishlist')" class="s-opt" style="width:100%;justify-content:flex-start;padding:.55rem .6rem;border-radius:var(--r)">♡ Wishlist</button>
+          <button onclick="showAcctTab('track')" class="s-opt" style="width:100%;justify-content:flex-start;padding:.55rem .6rem;border-radius:var(--r)">🔍 Track Order</button>
+          <button onclick="showAcctTab('profile')" class="s-opt" style="width:100%;justify-content:flex-start;padding:.55rem .6rem;border-radius:var(--r)">👤 Profile</button>
+          <div style="border-top:1px solid var(--border);margin:.5rem 0"></div>
+          <button onclick="logoutUser()" class="s-opt" style="width:100%;justify-content:flex-start;padding:.55rem .6rem;border-radius:var(--r);color:#e06060">↩ Sign Out</button>
+        </div>
+      </div>
+      <div id="acctContent">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:2rem">
+          <div class="t-label" style="margin-bottom:1rem">Recent Orders</div>
+          <div id="acctOrders"></div>
+        </div>
+      </div>
+    </div>
+  </div></section>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     CART DRAWER ═══ -->
+<div class="drawer" id="cartDrawer">
+  <div class="drawer-head">
+    <div class="drawer-title">Your Cart <span id="drawerCount" style="font-size:.78rem;color:var(--muted);font-family:var(--font-body);font-weight:400"></span></div>
+    <button class="drawer-x" onclick="closeCart()">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot" id="drawerFoot"></div>
+</div>
+
+<!-- ═══ PRODUCT MODAL (enhanced) ═══ -->
+<div class="modal" id="productModal">
+  <div class="modal-box" id="modalBox" style="max-width:900px"></div>
+</div>
+
+<!-- ═══ COMPARE MODAL ═══ -->
+<div class="modal" id="compareModal">
+  <div class="modal-box" style="max-width:960px;padding:2rem">
+    <button class="modal-close" onclick="document.getElementById('compareModal').classList.remove('show');document.getElementById('overlay').classList.remove('show')">✕</button>
+    <div class="t-eyebrow" style="margin-bottom:.4rem">Product Comparison</div>
+    <h2 class="t-display-sm" style="margin-bottom:1.5rem">Compare Products</h2>
+    <div id="compareContent" style="overflow-x:auto"></div>
+  </div>
+</div>
+
+<!-- ═══ AUTH MODAL ═══ -->
+<div class="modal" id="authModal">
+  <div class="modal-box auth-box">
+    <div style="margin-bottom:1.25rem">
+      <div style="font-family:var(--font-display);font-size:1.45rem;font-weight:700">OCF<b style="color:var(--gold)">.</b></div>
+      <p class="t-body" style="font-size:.8rem;margin-top:.25rem">Sign in to track orders, save items, and check out faster.</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login',this)">Sign In</button>
+      <button class="auth-tab" onclick="switchAuthTab('register',this)">Create Account</button>
+    </div>
+    <div id="loginForm">
+      <div class="form-group"><label class="form-label">Email</label><input class="form-control" type="email" placeholder="your@email.com" id="l-email"></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-control" type="password" placeholder="••••••••" id="l-pass"></div>
+      <div style="text-align:right;margin-bottom:1rem"><a style="font-size:.75rem;color:var(--gold);cursor:pointer">Forgot password?</a></div>
+      <button class="btn btn-gold btn-block" onclick="handleLogin()">Sign In</button>
+    </div>
+    <div id="registerForm" class="hidden">
+      <div class="form-group"><label class="form-label">Full Name</label><input class="form-control" type="text" placeholder="Liya Hunduma" id="r-name"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-control" type="email" placeholder="your@email.com" id="r-email"></div>
+      <div class="form-group"><label class="form-label">Phone / WhatsApp</label><input class="form-control" type="tel" placeholder="+1 555 000 0000" id="r-phone"></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-control" type="password" placeholder="Min 8 characters" id="r-pass"></div>
+      <button class="btn btn-gold btn-block" onclick="handleRegister()">Create Account</button>
+    </div>
+    <button onclick="closeAuth()" style="position:absolute;top:1rem;right:1rem;background:var(--card2);border:1px solid var(--border);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ivory);font-size:.9rem">✕</button>
+  </div>
+</div>
+
+<!-- FLOATING BUTTONS -->
+<a href="https://wa.me/251900000000" class="wa-btn" title="WhatsApp">💬</a>
+<button class="scroll-top-btn" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<!-- COMPARE BAR -->
+<div class="compare-bar" id="compareBar">
+  <div style="font-size:.82rem;font-weight:600">
+    ⚖ <span id="compareCount">0</span> items selected for comparison
+    <span style="color:var(--muted);font-size:.72rem;margin-left:.5rem">(max 3)</span>
+  </div>
+  <div style="display:flex;gap:.75rem">
+    <button class="btn btn-gold btn-sm" onclick="showCompareModal()">Compare Now</button>
+    <button class="btn btn-ghost btn-sm" onclick="clearCompare()">Clear</button>
+  </div>
+</div>
+
+<!-- RECENTLY VIEWED -->
+<div class="recently-viewed" id="recentlyViewed" style="display:none">
+  <div class="container">
+    <div class="section-hd" style="margin-bottom:1.25rem">
+      <div class="t-label">Recently Viewed</div>
+    </div>
+    <div id="recentlyViewedGrid" class="products-grid" style="grid-template-columns:repeat(6,1fr)"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer id="mainFooter">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">OCF<b>.</b></div>
+        <div class="footer-text">Oromo Cultural Fashion — preserving and celebrating the rich heritage of Oromo people through handcrafted traditional clothing. Men · Women · Kids. From Ethiopia to the world. 🇪🇹</div>
+        <div class="footer-socials">
+          <a class="f-social" href="#">📸</a><a class="f-social" href="#">🎵</a>
+          <a class="f-social" href="#">📘</a><a class="f-social" href="#">▶</a>
+          <a class="f-social" href="https://wa.me/251900000000">💬</a>
+        </div>
+      </div>
+      <div>
+        <div class="f-col-title">Shop</div>
+        <ul class="f-links">
+          <li><a onclick="go('men')">Men's Fashion</a></li>
+          <li><a onclick="go('women')">Women's Fashion</a></li>
+          <li><a onclick="go('kids')">Kids' Fashion</a></li>
+          <li><a onclick="go('products')">All Products</a></li>
+          <li><a onclick="go('bundles')">Bundle Deals</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="f-col-title">Help</div>
+        <ul class="f-links">
+          <li><a onclick="go('size-guide')">Size Guide</a></li>
+          <li><a onclick="go('faq')">FAQ</a></li>
+          <li><a onclick="go('contact')">Shipping Info</a></li>
+          <li><a onclick="go('contact')">Returns Policy</a></li>
+          <li><a onclick="go('contact')">Custom Orders</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="f-col-title">Downloads</div>
+        <ul class="f-links">
+          <li><a onclick="downloadPDF('all')">Full Catalog PDF</a></li>
+          <li><a onclick="downloadPDF('men')">Men's Catalog</a></li>
+          <li><a onclick="downloadPDF('women')">Women's Catalog</a></li>
+          <li><a onclick="downloadPDF('kids')">Kids' Catalog</a></li>
+          <li><a onclick="downloadPDF('size-guide')">Size Guide PDF</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2024 Oromo Cultural Fashion (OCF). All rights reserved. Made with 💛 in Ethiopia.</div>
+      <div style="font-size:.68rem;color:var(--muted);margin-top:.35rem">Prices in Ethiopian Birr (ETB / Br). International pricing shown at checkout.</div>
+      <div style="font-size:.75rem;color:rgba(240,235,224,.15)">🇺🇸 🇨🇦 🇬🇧 🇦🇺 🇩🇪 🇸🇪 🇫🇷</div>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════
+     ADMIN DASHBOARD PAGE
+═══════════════════════════════════════════ -->
+<div class="page" id="page-admin">
+  <div class="adm-shell">
+    <!-- Sidebar -->
+    <aside class="adm-sidebar">
+      <div class="adm-brand">OCF<b>.</b><span>Admin Dashboard</span></div>
+      <button class="adm-nav-btn active" data-tab="overview" onclick="goAdmin('overview')">
+        <span class="adm-icon">📊</span> Overview
+      </button>
+      <button class="adm-nav-btn" data-tab="orders" onclick="goAdmin('orders')">
+        <span class="adm-icon">📋</span> Orders
+      </button>
+      <button class="adm-nav-btn" data-tab="products" onclick="goAdmin('products')">
+        <span class="adm-icon">📦</span> Products
+      </button>
+      <button class="adm-nav-btn" data-tab="users" onclick="goAdmin('users')">
+        <span class="adm-icon">👥</span> Users
+      </button>
+      <div style="margin-top:auto;padding-top:2rem">
+        <button class="adm-nav-btn" onclick="go('home')">
+          <span class="adm-icon">🏠</span> Back to Store
+        </button>
+        <button class="adm-nav-btn" onclick="logoutUser()" style="color:#e06060">
+          <span class="adm-icon">🚪</span> Logout
+        </button>
+      </div>
+    </aside>
+    <!-- Main content area (populated by admin.js) -->
+    <main class="adm-main" id="adm-main">
+      <div class="adm-denied">
+        <div style="font-size:3rem">🔐</div>
+        <div style="color:var(--muted);font-size:.82rem">Loading admin panel…</div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/admin.js"></script>
+
+</body>
+</html>
