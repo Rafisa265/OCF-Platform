@@ -20,28 +20,46 @@ app.use(helmet({
 // ─── CORS ─────────────────────────────────────
 const configuredOrigins = (process.env.FRONTEND_URL || '')
   .split(',')
-  .map(url => url.trim().replace(/\/+$/, ''))
-  .filter(Boolean);
+  .map(value => value.trim())
+  .filter(Boolean)
+  .map(value => {
+    const normalized = value.endsWith('/') ? value.slice(0, -1) : value;
+    let parsed;
+    try {
+      parsed = new URL(normalized);
+    } catch {
+      throw new Error('FRONTEND_URL must contain exact HTTP(S) origins only.');
+    }
+    if (!['http:', 'https:'].includes(parsed.protocol) || parsed.origin !== normalized) {
+      throw new Error('FRONTEND_URL must contain exact HTTP(S) origins only.');
+    }
+    return parsed.origin;
+  });
 
-const allowedOrigins = [
+const developmentOrigins = process.env.NODE_ENV === 'production' ? [] : [
   'http://localhost:3000',
   'http://localhost:5500',
   'http://127.0.0.1:5500',
   'http://localhost:8080',
-  ...configuredOrigins
-].filter(Boolean);
+  'http://127.0.0.1:8080'
+];
+const allowedOrigins = new Set([...developmentOrigins, ...configuredOrigins]);
 
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    const normalizedOrigin = origin.replace(/\/+$/, '');
-    if (allowedOrigins.includes(normalizedOrigin)) return callback(null, true);
-    // Support Cloudflare Pages preview/branch subdomains if a .pages.dev domain is configured
-    if (configuredOrigins.some(u => u.includes('.pages.dev')) && /^https:\/\/[a-z0-9-.]+\.pages\.dev$/i.test(normalizedOrigin)) {
-      return callback(null, true);
-    }
-    if (process.env.NODE_ENV !== 'production' && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
-      return callback(null, true);
+    if (allowedOrigins.has(origin)) return callback(null, true);
+    if (process.env.NODE_ENV !== 'production') {
+      let parsed;
+      try {
+        parsed = new URL(origin);
+      } catch {
+        return callback(new Error('Blocked by CORS policy'));
+      }
+      if (parsed.origin === origin && parsed.protocol === 'http:' &&
+          ['localhost', '127.0.0.1'].includes(parsed.hostname)) {
+        return callback(null, true);
+      }
     }
     callback(new Error('Blocked by CORS policy'));
   },
@@ -49,7 +67,7 @@ app.use(cors({
 }));
 
 app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '10mb', parameterLimit: 1000 }));
 if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
@@ -69,19 +87,26 @@ app.use('/api', routes);
 
 // ─── ERROR HANDLER ───────────────────────────
 app.use((err, req, res, next) => {
-  console.error(err.stack || err);
+  const code = typeof err?.code === 'string' && /^[A-Z0-9_]{1,32}$/.test(err.code)
+    ? ` (code ${err.code})`
+    : '';
+  console.error(`Request failed${code}`);
+  if (res.headersSent) return next(err);
   if (err.message === 'Blocked by CORS policy') {
     return res.status(403).json({ error: 'Origin not allowed by CORS' });
   }
-  res.status(500).json({
-    error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Invalid JSON request' });
+  }
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ error: 'Request body is too large' });
+  }
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 // 404 Handler
 app.use((req, res) => {
-  res.status(404).json({ error: `Route ${req.method} ${req.url} not found` });
+  res.status(404).json({ error: 'Route not found' });
 });
 
 // ─── START ───────────────────────────────────
@@ -110,7 +135,10 @@ async function start() {
       console.log(`   GET  http://localhost:${PORT}/api/admin/dashboard\n`);
     });
   } catch (err) {
-    console.error('❌ Failed to start server:', err);
+    const code = typeof err?.code === 'string' && /^[A-Z0-9_]{1,32}$/.test(err.code)
+      ? ` (code ${err.code})`
+      : '';
+    console.error(`Failed to start server${code}`);
     process.exit(1);
   }
 }

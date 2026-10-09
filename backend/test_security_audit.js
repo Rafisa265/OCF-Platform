@@ -10,6 +10,7 @@ process.env.NODE_ENV = 'test';
 require('dotenv').config();
 
 const http = require('http');
+const crypto = require('crypto');
 const app = require('./server');
 const { pool } = require('./database/db');
 
@@ -32,13 +33,18 @@ function assert(label, condition, detail = '') {
   }
 }
 
-async function req(method, path, { body, token, query } = {}) {
+async function req(method, path, { body, token, query, headers = {} } = {}) {
   const url = new URL(BASE + path);
   if (query) Object.entries(query).forEach(([k, v]) => url.searchParams.set(k, v));
 
   const options = {
     method,
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...(method === 'POST' && path === '/orders' ? { 'Idempotency-Key': crypto.randomUUID() } : {}),
+      ...headers
+    }
   };
   if (token) options.headers['Authorization'] = `Bearer ${token}`;
 

@@ -1,5 +1,6 @@
 // full_stack_test.js — End-to-End Full Stack Verification
 const http = require('http');
+const crypto = require('crypto');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const app = require('./server');
@@ -11,6 +12,7 @@ function apiRequest(method, endpoint, body = null, token = null) {
   return new Promise((resolve, reject) => {
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (method === 'POST' && endpoint === '/api/orders') headers['Idempotency-Key'] = crypto.randomUUID();
 
     const req = http.request({
       hostname: 'localhost',

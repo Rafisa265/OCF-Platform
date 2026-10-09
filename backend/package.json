@@ -16,7 +16,10 @@
     "test:delete": "node test_product_delete.js",
     "test:security": "node test_security_audit.js",
     "test:smoke": "node smoke_test.js",
+    "test:idempotency": "node test_checkout_idempotency.js",
+    "test:migrate-staging": "node scripts/migrate-staging.test.js",
     "migrate": "node migrations/migrate.js",
+    "migrate:staging": "node scripts/migrate-staging.js",
     "migrate:data": "node migrations/migrate_data.js",
     "sync:catalog": "node migrations/sync_catalog_to_pg.js"
   },

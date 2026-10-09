@@ -14,6 +14,7 @@ const S = {
   user: JSON.parse(localStorage.getItem('ocf_user') || 'null'),
   token: localStorage.getItem('ocf_token') || null,
   checkoutStep: 1,
+  appliedPromo: null,
   products: [],
   activeFilters: { gender: [], cat: [], size: [], color: [], coll: [], price: 70000, quickFilter: 'all', sort: '' },
   selectedSize: null,
@@ -22,6 +23,24 @@ const S = {
   modalProduct: null,
   kidsAgeFilter: 'all'
 };
+const ocfT = (key, values) => window.OCFI18n ? window.OCFI18n.t(key, values) : key;
+const ocfCatalogText = (item, field) => {
+  if (!window.OCFI18n) return item?.[`${field}_en`] || item?.[field] || '';
+  if (field === 'name' && item?.id != null) {
+    const product = PRODUCTS.find(entry => String(entry.id) === String(item.id));
+    if (product) {
+      return window.OCFI18n.catalogText({
+        ...product,
+        ...item,
+        name_en: item.name_en || product.name_en || product.name,
+        name_om: item.name_om || product.name_om
+      }, field);
+    }
+  }
+  return window.OCFI18n.catalogText(item, field);
+};
+let orderSubmitting = false;
+let checkoutSubmission = JSON.parse(sessionStorage.getItem('ocf_checkout_submission') || 'null');
 
 // Cart and wishlist are now sourced from the PostgreSQL backend for logged-in users.
 // localStorage is no longer used as a persistent store for cart/wishlist.
@@ -131,7 +150,7 @@ function initGenderPage(gender) {
     <div class="cat-card" onclick="filterGenderCat('${gender}','${c.val}',this)">
       <div class="cat-card-icon">${c.icon}</div>
       <div class="cat-card-name">${c.name}</div>
-      <div class="cat-card-count">${c.count} items</div>
+      <div class="cat-card-count">${ocfT('common.itemCount', { count: c.count })}</div>
     </div>`).join('');
   renderSidebar(gender);
   loadGenderProducts(gender);
@@ -299,7 +318,18 @@ function clearFilters() {
 }
 
 // ── PRODUCT CARD ──
+function safeCssColor(value) {
+  return typeof value === 'string' && /^#(?:[\da-f]{3}|[\da-f]{4}|[\da-f]{6}|[\da-f]{8})$/i.test(value)
+    ? value
+    : '#888';
+}
+
 function productCard(p) {
+  const productName = ocfCatalogText(p, 'name');
+  const genderKey = { men: 'nav.men', women: 'nav.women', kids: 'nav.kids' }[p.gender];
+  const genderLabel = p.gender
+    ? (genderKey ? ocfT(genderKey) : p.gender.charAt(0).toUpperCase() + p.gender.slice(1))
+    : '';
   const rawImg = Array.isArray(p.images) ? p.images[0] : (p.images || '');
   const img = typeof getMediaUrl === 'function' ? getMediaUrl(rawImg) : rawImg;
   const wishlisted = S.wishlist.includes(p.id);
@@ -309,9 +339,9 @@ function productCard(p) {
   const stockTxt = p.stock === 0 ? '✕ Out of Stock' : p.stock <= 3 ? `⚠ Only ${p.stock} left` : `✓ In Stock`;
   const discount = p.compare_price ? Math.round((1 - p.price / p.compare_price) * 100) : 0;
   
-  return `<div class="product-card" onclick="openModal(${p.id})">
+  return `<div class="product-card" data-product-id="${Number(p.id)}" onclick="openModal(${p.id})">
     <div class="pc-img">
-      <img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}" loading="lazy">
+      <img src="${escapeHtml(img)}" alt="${escapeHtml(productName)}" loading="lazy">
       <div class="pc-badges">
         ${p.badge_text ? `<span class="badge ${badgeCls}">${escapeHtml(p.badge_text)}</span>` : ''}
         ${discount > 0 ? `<span class="badge badge-sale">${discount}% Off</span>` : ''}
@@ -328,10 +358,10 @@ function productCard(p) {
     </div>
     <div class="pc-body">
       <div class="pc-region">${escapeHtml(p.region)}</div>
-      <div class="pc-name">${escapeHtml(p.name)}</div>
-      <div class="pc-cat" style="font-size:.62rem;color:var(--muted)">${p.gender ? escapeHtml(p.gender.charAt(0).toUpperCase()+p.gender.slice(1)) : ''} · ${escapeHtml(p.cat || '')}</div>
+      <div class="pc-name">${escapeHtml(productName)}</div>
+      <div class="pc-cat" style="font-size:.62rem;color:var(--muted)">${escapeHtml(genderLabel)} · ${escapeHtml(ocfCatalogText(p, 'category_name') || p.cat || '')}</div>
       <div class="pc-stars">${'★'.repeat(Math.round(p.rating||5))}${'☆'.repeat(5-Math.round(p.rating||5))} <span>(${p.review_count||0})</span></div>
-      <div class="pc-colors">${(p.colors||[]).slice(0,4).map(c=>`<div class="pc-color" style="background:${c.startsWith('#')&&c.length>4?c:'#888'}" title="${escapeHtml(COLOR_NAMES[c]||c)}"></div>`).join('')}</div>
+      <div class="pc-colors">${(p.colors||[]).slice(0,4).map(c=>`<div class="pc-color" style="background:${safeCssColor(c)}" title="${escapeHtml(COLOR_NAMES[c]||c)}"></div>`).join('')}</div>
       <div class="pc-sizes-preview">${(p.sizes||[]).slice(0,5).map(s=>`<div class="pc-size-dot">${escapeHtml(s)}</div>`).join('')}${p.sizes?.length>5?`<div class="pc-size-dot">+${p.sizes.length-5}</div>`:''}</div>
       <div class="stock-indicator ${stockCls}" style="font-size:.62rem;margin-bottom:.3rem">${stockTxt}</div>
       <div class="pc-footer">
@@ -415,16 +445,16 @@ function showCompareModal() {
   if (!S.compare.length) { toast('Select products to compare first', 'error'); return; }
   const items = S.compare.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean);
   const fields = [
-    ['Image', p => `<img src="${p.images[0]}" style="width:100%;height:160px;object-fit:cover;border-radius:var(--r)">`],
-    ['Name', p => `<strong>${p.name}</strong>`],
-    ['Gender', p => p.gender],
-    ['Category', p => p.cat],
-    ['Region', p => p.region],
+    ['Image', p => `<img src="${escapeHtml(getMediaUrl(Array.isArray(p.images)?p.images[0]:p.images))}" alt="${escapeHtml(ocfCatalogText(p, 'name'))}" style="width:100%;height:160px;object-fit:cover;border-radius:var(--r)">`],
+    ['Name', p => `<strong>${escapeHtml(ocfCatalogText(p, 'name'))}</strong>`],
+    ['Gender', p => escapeHtml(p.gender)],
+    ['Category', p => escapeHtml(p.cat)],
+    ['Region', p => escapeHtml(p.region)],
     ['Price', p => `<strong style="color:var(--gold)">Br ${p.price.toLocaleString()}</strong>`],
-    ['Sizes', p => (p.sizes||[]).join(', ')],
+    ['Sizes', p => escapeHtml((p.sizes||[]).join(', '))],
     ['Rating', p => '★'.repeat(Math.round(p.rating||5)) + ` (${p.review_count})`],
     ['Stock', p => p.stock > 3 ? '✅ In Stock' : p.stock > 0 ? `⚠ ${p.stock} left` : '❌ Out of Stock'],
-    ['Material', p => p.material],
+    ['Material', p => escapeHtml(p.material)],
   ];
   document.getElementById('compareContent').innerHTML = `
     <div style="display:grid;grid-template-columns:120px ${items.map(()=>'1fr').join(' ')};gap:1rem">
@@ -465,6 +495,8 @@ async function openModal(id) {
   const p = PRODUCTS.find(x => x.id === id);
   if (!p) return;
   S.modalProduct = p;
+  const productName = ocfCatalogText(p, 'name');
+  const productDescription = ocfCatalogText(p, 'description');
   addToRecentlyViewed(id);
   const rawImgs = Array.isArray(p.images) ? p.images : [p.images];
   const imgs = rawImgs.map(im => typeof getMediaUrl === 'function' ? getMediaUrl(im) : im);
@@ -488,10 +520,10 @@ async function openModal(id) {
       <!-- IMAGE SECTION with zoom -->
       <div class="modal-img">
         <div class="img-zoom-wrap" id="zoomWrap" onmousemove="handleZoom(event,this)">
-          <img src="${imgs[0]}" alt="${p.name}" id="mainImg" class="modal-img-main">
+          <img src="${escapeHtml(imgs[0])}" alt="${escapeHtml(productName)}" id="mainImg" class="modal-img-main">
         </div>
         <div class="modal-img-thumbs">
-          ${imgs.map((img,i) => `<div class="modal-thumb${i===0?' active':''}" onclick="switchImg('${img}',this)"><img src="${img}" alt="View ${i+1}"></div>`).join('')}
+          ${imgs.map((img,i) => `<div class="modal-thumb${i===0?' active':''}" data-image="${escapeHtml(img)}" onclick="switchImg(this.dataset.image,this)"><img src="${escapeHtml(img)}" alt="View ${i+1}"></div>`).join('')}
           <!-- Placeholder views for front/back/side -->
           ${imgs.length < 2 ? `
             <div class="modal-thumb" style="background:var(--ink3);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--muted);text-align:center">Front</div>
@@ -502,12 +534,12 @@ async function openModal(id) {
       </div>
       <!-- PRODUCT DETAILS -->
       <div class="modal-body">
-        <div class="t-eyebrow" style="margin-bottom:.25rem">${p.region}</div>
-        <h2 style="font-family:var(--font-display);font-size:1.4rem;font-weight:700;line-height:1.2;margin-bottom:.4rem">${p.name}</h2>
+        <div class="t-eyebrow" style="margin-bottom:.25rem">${escapeHtml(p.region)}</div>
+        <h2 style="font-family:var(--font-display);font-size:1.4rem;font-weight:700;line-height:1.2;margin-bottom:.4rem">${escapeHtml(productName)}</h2>
         <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
           <div style="color:var(--gold);font-size:.8rem">${'★'.repeat(Math.round(avgRating))}${'☆'.repeat(5-Math.round(avgRating))}</div>
           <span style="font-size:.72rem;color:var(--muted)">${avgRating} · ${p.review_count||reviews.length} reviews</span>
-          <span class="badge ${p.badge==='oromo'?'badge-oromo':p.badge==='bestseller'?'badge-red':'badge-new'}" style="margin-left:.25rem">${p.badge_text||''}</span>
+          <span class="badge ${p.badge==='oromo'?'badge-oromo':p.badge==='bestseller'?'badge-red':'badge-new'}" style="margin-left:.25rem">${escapeHtml(p.badge_text||'')}</span>
         </div>
         <div style="display:flex;align-items:baseline;gap:.75rem;margin-bottom:.75rem">
           <div style="font-size:1.55rem;font-weight:700">Br ${(p.price||0).toLocaleString()}</div>
@@ -522,13 +554,13 @@ async function openModal(id) {
           <button style="font-size:.68rem;color:var(--gold);background:none;border:none;cursor:pointer;text-decoration:underline" onclick="closeModal();go('size-guide')">📏 Size Guide</button>
         </div>
         <div class="size-grid">
-          ${(p.sizes||['S','M','L','XL']).map(s => `<button class="size-btn${s===S.selectedSize?' active':''}" onclick="selectSize('${s}',this)">${s}</button>`).join('')}
+        ${(p.sizes||['S','M','L','XL']).map(s => `<button class="size-btn${s===S.selectedSize?' active':''}" data-size="${escapeHtml(s)}" onclick="selectSize(this.dataset.size,this)">${escapeHtml(s)}</button>`).join('')}
         </div>
         <!-- COLOR PICKER -->
         ${p.colors?.length ? `
-          <div class="t-label" style="margin-bottom:.4rem">Color: <span id="selColorName" style="font-weight:400;color:var(--muted2);text-transform:none">${COLOR_NAMES[p.colors[0]]||p.colors[0]}</span></div>
+          <div class="t-label" style="margin-bottom:.4rem">Color: <span id="selColorName" style="font-weight:400;color:var(--muted2);text-transform:none">${escapeHtml(COLOR_NAMES[p.colors[0]]||p.colors[0])}</span></div>
           <div class="color-picker">
-            ${p.colors.map((c,i) => `<div class="cpick${i===0?' active':''}" style="background:${c.startsWith('#')&&c.length>4?c:'#888'}" onclick="selectColor('${c}',this)" title="${COLOR_NAMES[c]||c}"></div>`).join('')}
+            ${p.colors.map((c,i) => `<div class="cpick${i===0?' active':''}" data-color="${escapeHtml(c)}" style="background:${safeCssColor(c)}" onclick="selectColor(this.dataset.color,this)" title="${escapeHtml(COLOR_NAMES[c]||c)}"></div>`).join('')}
           </div>
         ` : ''}
         <!-- QTY -->
@@ -543,11 +575,11 @@ async function openModal(id) {
         </div>
         <!-- ACTIONS -->
         <div style="display:flex;gap:.6rem;margin-bottom:.75rem">
-          <button class="btn btn-gold" style="flex:1" onclick="addToCart({id:${p.id},name:'${p.name.replace(/'/g,"\\'")}',price:${p.price},size:S.selectedSize,color:S.selectedColor,image:'${imgs[0]}',qty:S.selectedQty});closeModal()" ${p.stock===0?'disabled':''}>${p.stock===0?'Out of Stock':'Add to Cart'}</button>
+          <button class="btn btn-gold" style="flex:1" onclick="addModalProductToCart()" ${p.stock===0?'disabled':''}>${p.stock===0?'Out of Stock':'Add to Cart'}</button>
           <button class="btn-icon${S.wishlist.includes(p.id)?' active':''}" onclick="toggleWish(${p.id},this)" data-wish="${p.id}" title="Wishlist">${S.wishlist.includes(p.id)?'❤️':'♡'}</button>
           <button class="btn-icon${S.compare.includes(p.id)?' compare-active':''}" onclick="toggleCompare(${p.id},this)" data-cmp="${p.id}" title="Compare">⚖</button>
         </div>
-        <a href="https://wa.me/251900000000?text=Hi, I'm interested in ${encodeURIComponent(p.name)}" target="_blank" class="btn btn-ghost btn-block" style="margin-bottom:.6rem">💬 Ask on WhatsApp</a>
+        <a href="${escapeHtml(`https://wa.me/251900000000?text=${encodeURIComponent(`Hi, I'm interested in ${productName}`)}`)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-block" style="margin-bottom:.6rem">💬 Ask on WhatsApp</a>
         ${p.stock===0?`<button class="btn btn-outline btn-block" style="margin-bottom:.6rem;border-color:var(--muted)" onclick="notifyWhenBack(${p.id})">🔔 Notify Me When Back in Stock</button>`:''}
         <div style="display:flex;gap:.5rem;margin-bottom:.75rem">
           <button class="pdf-btn" style="flex:1;justify-content:center" onclick="downloadPDF('product-${p.id}')">📄 Product Brochure</button>
@@ -560,8 +592,8 @@ async function openModal(id) {
           <button class="m-tab" onclick="switchMTab(this,'mrev')">Reviews (${p.review_count||reviews.length})</button>
           <button class="m-tab" onclick="switchMTab(this,'mship')">Shipping</button>
         </div>
-        <div id="mdesc" class="m-tab-body">${p.description||''}</div>
-        <div id="mmat" class="m-tab-body hidden"><strong style="color:var(--ivory2);font-size:.82rem">Material:</strong> ${p.material||'Premium handwoven cotton'}<br><br><strong style="color:var(--ivory2);font-size:.82rem">Care:</strong> ${p.care||'Dry clean only.'}</div>
+        <div id="mdesc" class="m-tab-body">${escapeHtml(productDescription)}</div>
+        <div id="mmat" class="m-tab-body hidden"><strong style="color:var(--ivory2);font-size:.82rem">Material:</strong> ${escapeHtml(p.material||'Premium handwoven cotton')}<br><br><strong style="color:var(--ivory2);font-size:.82rem">Care:</strong> ${escapeHtml(p.care||'Dry clean only.')}</div>
         <div id="mrev" class="m-tab-body hidden">
           ${reviews.length ? `
             <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
@@ -605,9 +637,9 @@ async function openModal(id) {
         ${PRODUCTS.filter(q => q.id !== id && q.gender === p.gender).slice(0,4).map(q => `
           <div onclick="closeModal();setTimeout(()=>openModal(${q.id}),100)" style="cursor:pointer">
             <div style="aspect-ratio:3/4;overflow:hidden;border-radius:var(--r);background:var(--ink2);margin-bottom:.4rem">
-              <img src="${q.images[0]}" alt="${q.name}" style="width:100%;height:100%;object-fit:cover;transition:transform .4s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+              <img src="${escapeHtml(getMediaUrl(Array.isArray(q.images)?q.images[0]:q.images))}" alt="${escapeHtml(q.name)}" style="width:100%;height:100%;object-fit:cover;transition:transform .4s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             </div>
-            <div style="font-size:.72rem;font-weight:600;color:var(--ivory2)">${q.name}</div>
+            <div style="font-size:.72rem;font-weight:600;color:var(--ivory2)">${escapeHtml(q.name)}</div>
             <div style="font-size:.68rem;color:var(--gold)">Br ${q.price.toLocaleString()}</div>
           </div>`).join('')}
       </div>
@@ -615,6 +647,24 @@ async function openModal(id) {
 
   document.getElementById('productModal').classList.add('show');
   document.getElementById('overlay').classList.add('show');
+}
+
+async function addModalProductToCart() {
+  const product = S.modalProduct;
+  if (!product) return;
+  const image = Array.isArray(product.images) ? product.images[0] : product.images;
+  await addToCart({
+    id: product.id,
+    name: product.name,
+    name_en: product.name_en || product.name,
+    name_om: product.name_om || null,
+    price: product.price,
+    size: S.selectedSize,
+    color: S.selectedColor,
+    image: getMediaUrl(image),
+    qty: S.selectedQty
+  });
+  closeModal();
 }
 
 function handleZoom(e, el) {
@@ -711,11 +761,11 @@ function generatePDFContent(type) {
   } else { lines.push('FULL PRODUCT CATALOG'); }
   lines.push('');
   products.forEach(p => {
-    lines.push(`${p.name}`);
+    lines.push(`${ocfCatalogText(p, 'name')}`);
     lines.push(`  Region: ${p.region} | Gender: ${p.gender} | Category: ${p.cat}`);
     lines.push(`  Price: Br ${p.price.toLocaleString()}${p.compare_price?' (Was Br '+p.compare_price.toLocaleString()+')':''}`);
     lines.push(`  Sizes: ${(p.sizes||[]).join(', ')}`);
-    lines.push(`  ${p.description}`);
+    lines.push(`  ${ocfCatalogText(p, 'description')}`);
     lines.push('');
   });
   lines.push('='.repeat(60));
@@ -728,20 +778,22 @@ async function loadUserCart() {
   if (!S.token || S.token === 'demo') { S.cart = []; updateCartBadge(); renderCartDrawer(); return; }
   try {
     const res = await api('/cart');
-    if (res && res.items) {
+    if (res && Array.isArray(res.items)) {
       S.cart = res.items.map(i => ({
         _cartId: i.id,          // DB row id — required for PUT/DELETE
         id: i.product_id,       // product id — used by UI
         name: i.name,
+        name_en: PRODUCTS.find(p => p.id === i.product_id)?.name_en || i.name,
+        name_om: PRODUCTS.find(p => p.id === i.product_id)?.name_om || null,
         price: i.price,
         qty: i.quantity,
         size: i.size,
         image: Array.isArray(i.images) ? i.images[0] : i.images
       }));
     } else {
-      S.cart = [];
+      toast(res?.error || 'Could not load your cart. Please try again.', 'error');
     }
-  } catch { S.cart = []; }
+  } catch { toast('Network error while loading your cart.', 'error'); }
   updateCartBadge(); renderCartDrawer();
 }
 
@@ -750,12 +802,12 @@ async function loadUserWishlist() {
   if (!S.token || S.token === 'demo') { S.wishlist = []; updateCartBadge(); return; }
   try {
     const res = await api('/wishlist');
-    if (res && res.items) {
+    if (res && Array.isArray(res.items)) {
       S.wishlist = res.items.map(i => i.product_id);
     } else {
-      S.wishlist = [];
+      toast(res?.error || 'Could not load your wishlist. Please try again.', 'error');
     }
-  } catch { S.wishlist = []; }
+  } catch { toast('Network error while loading your wishlist.', 'error'); }
   updateCartBadge();
   // Re-render wishlist page if open
   if (S.page === 'wishlist') renderWishlist();
@@ -765,7 +817,7 @@ async function loadUserWishlist() {
 async function quickAddToCart(id) {
   const p = PRODUCTS.find(x => x.id === id);
   if (!p || p.stock === 0) { toast('Out of stock', 'error'); return; }
-  await addToCart({ id: p.id, name: p.name, price: p.price, size: p.sizes?.[1]||p.sizes?.[0]||'M', color: p.colors?.[0]||'', image: Array.isArray(p.images) ? p.images[0] : p.images });
+  await addToCart({ id: p.id, name: p.name, name_en: p.name_en, name_om: p.name_om, price: p.price, size: p.sizes?.[1]||p.sizes?.[0]||'M', color: p.colors?.[0]||'', image: Array.isArray(p.images) ? p.images[0] : p.images });
 }
 
 function bundleToCart(name, price) {
@@ -787,7 +839,8 @@ async function addToCart(item) {
       body: JSON.stringify({ product_id: item.id, quantity: item.qty || 1, size: item.size || 'M' })
     });
     if (res && !res.error) {
-      toast(`"${item.name}" added to cart ✓`, 'success');
+      clearAppliedPromo();
+      toast(`"${ocfCatalogText(item, 'name')}" added to cart ✓`, 'success');
       await loadUserCart();
     } else {
       toast(res?.error || 'Could not add to cart. Please try again.', 'error');
@@ -801,9 +854,11 @@ async function removeFromCart(productId, size) {
   const item = S.cart.find(i => i.id === productId && i.size === size);
   if (!item) return;
   const cartRowId = item._cartId;
-  if (!cartRowId) { S.cart = S.cart.filter(i => !(i.id===productId && i.size===size)); updateCartBadge(); renderCartDrawer(); return; }
+  if (!cartRowId) { S.cart = S.cart.filter(i => !(i.id===productId && i.size===size)); clearAppliedPromo(); updateCartBadge(); renderCartDrawer(); return; }
   try {
-    await api('/cart/' + cartRowId, { method: 'DELETE' });
+    const res = await api('/cart/' + cartRowId, { method: 'DELETE' });
+    if (!res || res.error) { toast(res?.error || 'Could not remove item. Please try again.', 'error'); return; }
+    clearAppliedPromo();
     await loadUserCart();
   } catch {
     toast('Could not remove item. Please try again.', 'error');
@@ -815,12 +870,14 @@ async function changeQty(productId, size, delta) {
   if (!item) return;
   const newQty = Math.max(1, (item.qty || 1) + delta);
   const cartRowId = item._cartId;
-  if (!cartRowId) { item.qty = newQty; updateCartBadge(); renderCartDrawer(); return; }
+  if (!cartRowId) { item.qty = newQty; clearAppliedPromo(); updateCartBadge(); renderCartDrawer(); return; }
   try {
-    await api('/cart/' + cartRowId, {
+    const res = await api('/cart/' + cartRowId, {
       method: 'PUT',
       body: JSON.stringify({ quantity: newQty })
     });
+    if (!res || res.error) { toast(res?.error || 'Could not update quantity. Please try again.', 'error'); return; }
+    clearAppliedPromo();
     await loadUserCart();
   } catch {
     toast('Could not update quantity. Please try again.', 'error');
@@ -845,7 +902,7 @@ function renderCartDrawer() {
   const cnt = document.getElementById('drawerCount');
   if (!body) return;
   const count = cartCount();
-  if (cnt) cnt.textContent = count ? `(${count} item${count>1?'s':''})` : '';
+  if (cnt) cnt.textContent = count ? `(${count} ${ocfT(count > 1 ? 'cart.items' : 'cart.item')})` : '';
   if (!S.cart.length) {
     body.innerHTML = `<div class="cart-empty"><div class="cart-empty-icon">🛒</div><div>Your cart is empty</div><button class="btn btn-outline btn-sm" style="margin-top:1rem" onclick="closeCart();go('products')">Start Shopping</button></div>`;
     if (foot) foot.innerHTML = '';
@@ -853,21 +910,22 @@ function renderCartDrawer() {
   }
   body.innerHTML = S.cart.map(item => {
     const img = typeof item.image === 'string' ? item.image : (item.images?.[0]||'');
-    return `<div class="cart-item">
-      <div class="ci-img"><img src="${img}" alt="${item.name}"></div>
+    const productName = ocfCatalogText(item, 'name');
+    return `<div class="cart-item" data-product-id="${Number(item.id)}" data-product-size="${escapeHtml(item.size||'M')}">
+      <div class="ci-img"><img src="${escapeHtml(img)}" alt="${escapeHtml(productName)}"></div>
       <div style="flex:1">
-        <div class="ci-name">${item.name}</div>
-        <div class="ci-meta">Size: ${item.size}${item.color?` · <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${item.color};vertical-align:middle"></span>`:''}
+        <div class="ci-name">${escapeHtml(productName)}</div>
+        <div class="ci-meta">Size: ${escapeHtml(item.size)}${item.color?` · <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${safeCssColor(item.color)};vertical-align:middle"></span>`:''}
         </div>
         <div class="ci-row">
           <div class="qty-ctrl">
-            <button class="qty-btn" onclick="changeQty(${item.id},'${item.size}',-1)">−</button>
+            <button class="qty-btn" onclick="changeQty(Number(this.closest('.cart-item').dataset.productId),this.closest('.cart-item').dataset.productSize,-1)">−</button>
             <span class="qty-val">${item.qty||1}</span>
-            <button class="qty-btn" onclick="changeQty(${item.id},'${item.size}',1)">+</button>
+            <button class="qty-btn" onclick="changeQty(Number(this.closest('.cart-item').dataset.productId),this.closest('.cart-item').dataset.productSize,1)">+</button>
           </div>
           <div class="ci-price">Br ${(item.price*(item.qty||1)).toLocaleString()}</div>
         </div>
-        <button class="ci-remove" onclick="removeFromCart(${item.id},'${item.size}')">Remove</button>
+        <button class="ci-remove" onclick="removeFromCart(Number(this.closest('.cart-item').dataset.productId),this.closest('.cart-item').dataset.productSize)">Remove</button>
       </div>
     </div>`;
   }).join('');
@@ -939,7 +997,7 @@ function renderCollections() {
         <div class="divider-line"></div>
         <p class="t-body" style="font-size:.8rem;margin-bottom:1.25rem">${c.desc}</p>
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:.75rem;color:var(--muted)">${c.pieces} handcrafted pieces</span>
+          <span style="font-size:.75rem;color:var(--muted)">${ocfT('collection.piecesCount', { count: c.pieces })}</span>
           <button class="btn btn-outline btn-sm" onclick="go('products')">Shop Collection →</button>
         </div>
       </div>
@@ -1096,27 +1154,29 @@ function renderCheckout() {
   if (!el) return;
   updateCheckoutSteps();
   const sub = cartTotal();
-  const ship = sub >= 15000 ? 0 : 800;
-  const total = sub + ship;
+  const ship = sub >= 15000 ? 0 : (S.shipping?.country === 'Ethiopia' || !S.shipping?.country ? 800 : 2500);
+  const discount = Math.min(S.appliedPromo?.discount || 0, sub);
+  const total = sub - discount + ship;
   const summary = `<div class="order-summary-box">
     <div class="t-display-sm" style="margin-bottom:1.1rem">Order Summary</div>
-    ${S.cart.map(i=>`<div style="display:flex;justify-content:space-between;font-size:.8rem;padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.04)"><span>${i.name} ×${i.qty||1}</span><span>Br ${(i.price*(i.qty||1)).toLocaleString()}</span></div>`).join('')}
+    ${S.cart.map(i=>`<div style="display:flex;justify-content:space-between;font-size:.8rem;padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.04)"><span class="checkout-product-name" data-product-id="${Number(i.id)}">${escapeHtml(ocfCatalogText(i, 'name'))} ×${i.qty||1}</span><span>Br ${(i.price*(i.qty||1)).toLocaleString()}</span></div>`).join('')}
     <div class="cart-line" style="margin-top:.5rem"><span>Subtotal</span><span>Br ${sub.toLocaleString()}</span></div>
     <div class="cart-line"><span>Shipping</span><span>${ship===0?'<span style="color:var(--green-light)">Free</span>':'Br '+ship.toLocaleString()}</span></div>
-    <div class="cart-line total"><span>Total</span><span style="color:var(--gold)">Br ${total.toLocaleString()}</span></div>
+    <div class="cart-line" id="checkoutDiscountRow" style="display:${discount > 0 ? 'flex' : 'none'}"><span>Promo discount</span><span id="checkoutDiscountValue">−Br ${discount.toLocaleString()}</span></div>
+    <div class="cart-line total"><span>Total</span><span id="checkoutTotal" style="color:var(--gold)">Br ${total.toLocaleString()}</span></div>
     <div style="font-size:.68rem;color:var(--muted);margin-top:.5rem">🔒 SSL secured checkout</div>
   </div>`;
   let main = '';
   if (S.checkoutStep === 1) {
     main = `<div><h2 class="t-display-sm" style="margin-bottom:1.5rem">Review Your Cart</h2>
       ${!S.cart.length ? `<div style="color:var(--muted)">Cart is empty. <button onclick="go('products')" style="background:none;border:none;color:var(--gold);cursor:pointer">Shop →</button></div>` :
-      S.cart.map(i=>`<div style="display:flex;gap:1rem;padding:1rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
-        <div style="width:60px;height:78px;border-radius:var(--r);overflow:hidden;flex-shrink:0"><img src="${i.image||''}" style="width:100%;height:100%;object-fit:cover"></div>
+      S.cart.map(i=>`<div class="checkout-cart-row" data-product-id="${Number(i.id)}" data-product-size="${escapeHtml(i.size||'M')}" style="display:flex;gap:1rem;padding:1rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <div style="width:60px;height:78px;border-radius:var(--r);overflow:hidden;flex-shrink:0"><img src="${escapeHtml(i.image||'')}" alt="${escapeHtml(ocfCatalogText(i, 'name'))}" style="width:100%;height:100%;object-fit:cover"></div>
         <div style="flex:1">
-          <div style="font-size:.9rem;font-weight:600">${i.name}</div>
-          <div style="font-size:.72rem;color:var(--muted)">Size: ${i.size}</div>
+          <div class="checkout-product-name" data-product-id="${Number(i.id)}" style="font-size:.9rem;font-weight:600">${escapeHtml(ocfCatalogText(i, 'name'))}</div>
+          <div style="font-size:.72rem;color:var(--muted)">Size: ${escapeHtml(i.size)}</div>
           <div style="display:flex;justify-content:space-between;margin-top:.5rem">
-            <div class="qty-ctrl"><button class="qty-btn" onclick="changeQty(${i.id},'${i.size}',-1);renderCheckout()">−</button><span class="qty-val">${i.qty||1}</span><button class="qty-btn" onclick="changeQty(${i.id},'${i.size}',1);renderCheckout()">+</button></div>
+            <div class="qty-ctrl"><button class="qty-btn" onclick="changeQty(Number(this.closest('.checkout-cart-row').dataset.productId),this.closest('.checkout-cart-row').dataset.productSize,-1);renderCheckout()">−</button><span class="qty-val">${i.qty||1}</span><button class="qty-btn" onclick="changeQty(Number(this.closest('.checkout-cart-row').dataset.productId),this.closest('.checkout-cart-row').dataset.productSize,1);renderCheckout()">+</button></div>
             <div style="font-weight:700">Br ${(i.price*(i.qty||1)).toLocaleString()}</div>
           </div>
         </div>
@@ -1148,10 +1208,10 @@ function renderCheckout() {
       <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.75rem">
         ${[['chapa','Chapa','Telebirr · CBE Birr · Bank Cards','🇪🇹'],['paypal','PayPal','Pay with PayPal','💙'],['card','Visa / Mastercard','Secure card payment','💳'],['bank','Bank Transfer','Direct bank payment','🏦']].map(([v,n,s,i])=>`<label style="display:flex;align-items:center;gap:1rem;padding:1rem;border:1px solid var(--border);border-radius:var(--r2);cursor:pointer;transition:border-color var(--t)"><input type="radio" name="pay" value="${v}" style="accent-color:var(--gold)"><span style="font-size:1.1rem">${i}</span><div><div style="font-size:.88rem;font-weight:600">${n}</div><div style="font-size:.72rem;color:var(--muted)">${s}</div></div></label>`).join('')}
       </div>
-      <div class="form-group"><label class="form-label">Promo Code</label><div style="display:flex;gap:.5rem"><input class="form-control" placeholder="Enter code" id="promoInput" style="max-width:220px"><button class="btn btn-ghost btn-sm" onclick="applyPromo()">Apply</button></div></div>
+      <div class="form-group"><label class="form-label">Promo Code</label><div style="display:flex;gap:.5rem"><input class="form-control" placeholder="Enter code" id="promoInput" value="${escapeHtml(S.appliedPromo?.code || '')}" oninput="clearAppliedPromo()" style="max-width:220px"><button class="btn btn-ghost btn-sm" onclick="applyPromo()">Apply</button></div></div>
       <div style="display:flex;gap:.75rem;margin-top:1.25rem">
         <button class="btn btn-ghost" onclick="goStep(2)">← Back</button>
-        <button class="btn btn-gold btn-lg" onclick="placeOrder()">Place Order — Br ${total.toLocaleString()} →</button>
+        <button class="btn btn-gold btn-lg" id="checkoutPlaceOrder" onclick="placeOrder()">Place Order — Br ${total.toLocaleString()} →</button>
       </div>
       <div style="font-size:.7rem;color:var(--muted);margin-top:.75rem;text-align:center">🔒 Your payment is encrypted and secure</div>
     </div>`;
@@ -1162,12 +1222,13 @@ function renderCheckout() {
       <h2 style="font-family:var(--font-display);font-size:2rem;color:var(--gold);margin-bottom:.75rem">Order Confirmed!</h2>
       <p class="t-body" style="margin-bottom:.5rem">Thank you for supporting Oromo craftsmanship.</p>
       <p style="font-size:.8rem;color:var(--muted);margin-bottom:2rem">Order <strong style="color:var(--gold)">#${orderNum}</strong> · Confirmation sent to your email and WhatsApp.</p>
-      <button class="btn btn-gold btn-lg" onclick="S.cart=[];updateCartBadge();renderCartDrawer();go('home')">Continue Shopping →</button>
+      <button class="btn btn-gold btn-lg" onclick="S.cart=[];S.appliedPromo=null;updateCartBadge();renderCartDrawer();go('home')">Continue Shopping →</button>
     </div>`;
     updateCheckoutSteps();
     return;
   }
   el.innerHTML = `<div class="checkout-grid">${main}${summary}</div>`;
+  updateCheckoutTotals();
   updateCheckoutSteps();
 }
 
@@ -1184,10 +1245,15 @@ function updateCheckoutSteps() {
 function validateShipping() {
   const fields = ['s-fn','s-ln','s-em','s-ph','s-ad','s-ci'];
   for (const id of fields) { if (!document.getElementById(id)?.value) { toast('Please fill in all required fields', 'error'); return; } }
-  
+  const email = document.getElementById('s-em').value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    toast(ocfT('checkout.invalidEmail'), 'error');
+    return;
+  }
+
   S.shipping = {
     name: document.getElementById('s-fn').value + ' ' + document.getElementById('s-ln').value,
-    email: document.getElementById('s-em').value,
+    email,
     phone: document.getElementById('s-ph').value,
     address: document.getElementById('s-ad').value,
     city: document.getElementById('s-ci').value,
@@ -1195,18 +1261,51 @@ function validateShipping() {
   };
   goStep(3);
 }
-function applyPromo() {
-  const code = document.getElementById('promoInput')?.value?.toUpperCase();
-  const codes = { WELCOME10:'10% discount applied', BUNDLE15:'15% discount applied', WEDDING20:'20% wedding discount applied' };
-  if (codes[code]) toast(`✓ ${codes[code]}!`, 'success');
-  else toast('Invalid promo code', 'error');
+function updateCheckoutTotals() {
+  const subtotal = cartTotal();
+  const shipping = subtotal >= 15000 ? 0 : (S.shipping?.country === 'Ethiopia' || !S.shipping?.country ? 800 : 2500);
+  const discount = Math.min(S.appliedPromo?.discount || 0, subtotal);
+  const discountRow = document.getElementById('checkoutDiscountRow');
+  const discountValue = document.getElementById('checkoutDiscountValue');
+  const totalValue = document.getElementById('checkoutTotal');
+  const placeOrderButton = document.getElementById('checkoutPlaceOrder');
+  if (discountRow) discountRow.style.display = discount > 0 ? 'flex' : 'none';
+  if (discountValue) discountValue.textContent = `−Br ${discount.toLocaleString()}`;
+  if (totalValue) totalValue.textContent = `Br ${(subtotal - discount + shipping).toLocaleString()}`;
+  if (placeOrderButton) placeOrderButton.textContent = `Place Order — Br ${(subtotal - discount + shipping).toLocaleString()} →`;
+}
+
+function clearAppliedPromo() {
+  S.appliedPromo = null;
+  updateCheckoutTotals();
+}
+
+async function applyPromo() {
+  const input = document.getElementById('promoInput');
+  const code = input?.value.trim().toUpperCase();
+  if (!code) { toast('Please enter a promo code', 'error'); return; }
+  const res = await api('/promo/validate', {
+    method: 'POST',
+    body: JSON.stringify({ code, subtotal: cartTotal() })
+  });
+  if (!res || !res.valid) {
+    clearAppliedPromo();
+    toast(res?.error || 'Unable to validate promo code. Please try again.', 'error');
+    return;
+  }
+  if (input?.value.trim().toUpperCase() !== code) return;
+  S.appliedPromo = { code, discount: Number(res.discount) || 0 };
+  updateCheckoutTotals();
+  toast(res.message || 'Promo code applied.', 'success');
 }
 async function placeOrder() {
+  if (orderSubmitting) return;
   const method = document.querySelector('input[name="pay"]:checked');
   if (!method) { toast('Please select a payment method', 'error'); return; }
+  orderSubmitting = true;
   toast('Processing your order…');
   
-  const promo = document.getElementById('promoInput')?.value;
+  const promo = S.appliedPromo?.code || null;
   
   try {
     const payload = {
@@ -1215,14 +1314,33 @@ async function placeOrder() {
       payment_method: method.value,
       promo_code: promo || null
     };
+    const fingerprint = JSON.stringify({ userId: S.user?.id || null, payload });
+    if (!checkoutSubmission || checkoutSubmission.fingerprint !== fingerprint) {
+      const keyBytes = new Uint8Array(16);
+      window.crypto.getRandomValues(keyBytes);
+      checkoutSubmission = {
+        fingerprint,
+        key: Array.from(keyBytes, byte => byte.toString(16).padStart(2, '0')).join('')
+      };
+      sessionStorage.setItem('ocf_checkout_submission', JSON.stringify(checkoutSubmission));
+    }
     
-    const res = await api('/orders', { method: 'POST', body: JSON.stringify(payload) });
+    const res = await api('/orders', {
+      method: 'POST',
+      headers: { 'Idempotency-Key': checkoutSubmission.key },
+      body: JSON.stringify(payload)
+    });
+    if (!res) throw new Error('Unable to reach the server. Please check your connection and try again.');
     if (res.error) throw new Error(res.error);
     
     S.lastOrderNum = res.orderNumber;
+    checkoutSubmission = null;
+    sessionStorage.removeItem('ocf_checkout_submission');
     goStep(4);
   } catch (e) {
     toast('Error: ' + e.message, 'error');
+  } finally {
+    orderSubmitting = false;
   }
 }
 
@@ -1230,16 +1348,17 @@ async function placeOrder() {
 function doSearch(q) {
   if (!q || q.length < 2) { hideDrop(); return; }
   const products = PRODUCTS.filter(p =>
-    p.name.toLowerCase().includes(q.toLowerCase()) ||
+    `${p.name_en || p.name} ${p.name_om || ''} ${p.description_en || p.description || ''} ${p.description_om || ''} ${p.category_name_en || ''} ${p.category_name_om || ''}`.toLowerCase().includes(q.toLowerCase()) ||
     p.region.toLowerCase().includes(q.toLowerCase()) ||
     p.cat.toLowerCase().includes(q.toLowerCase()) ||
     p.gender.toLowerCase().includes(q.toLowerCase())
   );
   const drop = document.getElementById('searchDrop');
-  if (!products.length) { drop.innerHTML = `<div style="color:var(--muted);font-size:.84rem;padding:.5rem">No results for "${q}"</div>`; }
+  if (!products.length) { drop.innerHTML = `<div style="color:var(--muted);font-size:.84rem;padding:.5rem">No results for "${escapeHtml(q)}"</div>`; }
   else { drop.innerHTML = products.slice(0,6).map(p => {
     const sImg = typeof getMediaUrl === 'function' ? getMediaUrl(p.images?.[0] || '') : (p.images?.[0] || '');
-    return `<div class="sr-item" onclick="openModal(${p.id});hideDrop()"><div class="sr-thumb"><img src="${escapeHtml(sImg)}" alt="${escapeHtml(p.name)}"></div><div><div class="sr-name">${escapeHtml(p.name)}</div><div style="font-size:.62rem;color:var(--muted)">${escapeHtml(p.gender)} · ${escapeHtml(p.cat)}</div><div class="sr-price">Br ${(p.price||0).toLocaleString()}</div></div></div>`;
+    const productName = ocfCatalogText(p, 'name');
+    return `<div class="sr-item" onclick="openModal(${p.id});hideDrop()"><div class="sr-thumb"><img src="${escapeHtml(sImg)}" alt="${escapeHtml(productName)}"></div><div><div class="sr-name">${escapeHtml(productName)}</div><div style="font-size:.62rem;color:var(--muted)">${escapeHtml(p.gender)} · ${escapeHtml(ocfCatalogText(p, 'category_name') || p.cat || '')}</div><div class="sr-price">Br ${(p.price||0).toLocaleString()}</div></div></div>`;
   }).join(''); }
   showDrop();
 }
@@ -1248,20 +1367,48 @@ function hideDrop() { document.getElementById('searchDrop').classList.remove('sh
 
 // ── CONTACT ──
 async function submitContact() {
-  const name = document.getElementById('c-name')?.value;
-  const email = document.getElementById('c-email')?.value;
-  const msg = document.getElementById('c-msg')?.value;
+  const name = document.getElementById('c-name')?.value.trim();
+  const email = document.getElementById('c-email')?.value.trim();
+  const phone = document.getElementById('c-phone')?.value.trim();
+  const subject = document.getElementById('c-subject')?.value;
+  const msg = document.getElementById('c-msg')?.value.trim();
   if (!name||!email||!msg) { toast('Please fill in all required fields', 'error'); return; }
-  toast("Message sent! We'll respond within 24 hours. ✓", 'success');
-  ['c-name','c-email','c-phone','c-msg'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  try {
+    const res = await api('/contact', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, phone, subject, message: msg })
+    });
+    if (!res || res.error) {
+      toast(res?.error || 'Unable to send your message. Please try again.', 'error');
+      return;
+    }
+    toast(res.message || "Message sent! We'll respond within 24 hours. ✓", 'success');
+    ['c-name','c-email','c-phone','c-msg'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    const subjectEl = document.getElementById('c-subject');
+    if (subjectEl) subjectEl.value = '';
+  } catch {
+    toast('Network error. Please try again.', 'error');
+  }
 }
 
 // ── NEWSLETTER ──
 async function subscribeNL() {
-  const email = document.getElementById('nlEmail')?.value;
+  const email = document.getElementById('nlEmail')?.value.trim();
   if (!email||!email.includes('@')) { toast('Please enter a valid email address', 'error'); return; }
-  toast('Subscribed! Check your email for your 10% welcome discount. 🌿', 'success');
-  if (document.getElementById('nlEmail')) document.getElementById('nlEmail').value = '';
+  try {
+    const res = await api('/newsletter', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+    if (!res || res.error) {
+      toast(res?.error || 'Unable to subscribe. Please try again.', 'error');
+      return;
+    }
+    toast(res.message || 'Successfully subscribed to the newsletter. 🌿', 'success');
+    if (document.getElementById('nlEmail')) document.getElementById('nlEmail').value = '';
+  } catch {
+    toast('Network error. Please try again.', 'error');
+  }
 }
 
 // ── MOBILE MENU ──
@@ -1415,9 +1562,10 @@ function notifyWhenBack(productId) {
 function shareProduct(id) {
   const p = PRODUCTS.find(x => x.id === id);
   if (!p) return;
-  const text = `Check out this beautiful ${p.name} from OCF — Oromo Cultural Fashion! Br ${p.price.toLocaleString()}`;
+  const productName = ocfCatalogText(p, 'name');
+  const text = `Check out this beautiful ${productName} from OCF — Oromo Cultural Fashion! Br ${p.price.toLocaleString()}`;
   if (navigator.share) {
-    navigator.share({ title: p.name, text, url: window.location.href }).catch(() => {});
+    navigator.share({ title: productName, text, url: window.location.href }).catch(() => {});
   } else {
     navigator.clipboard?.writeText(window.location.href + '?product=' + id);
     toast('Product link copied to clipboard ✓', 'success');
@@ -1517,30 +1665,58 @@ function showAcctTab(tab) {
     el.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:2rem">
       <div class="t-label" style="margin-bottom:1rem">Profile Information</div>
       <div class="form-group"><label class="form-label">Name</label>
-        <input class="form-control" value="${u.name||''}" id="prof-name"></div>
+        <input class="form-control" value="${escapeHtml(u.name||'')}" id="prof-name"></div>
       <div class="form-group"><label class="form-label">Email</label>
-        <input class="form-control" type="email" value="${u.email||''}" id="prof-email"></div>
+        <input class="form-control" type="email" value="${escapeHtml(u.email||'')}" id="prof-email" readonly></div>
       <div class="form-group"><label class="form-label">Phone / WhatsApp</label>
-        <input class="form-control" value="${u.phone||''}" id="prof-phone" placeholder="+251 900 000 000"></div>
+        <input class="form-control" value="${escapeHtml(u.phone||'')}" id="prof-phone" placeholder="+251 900 000 000"></div>
       <div class="form-group"><label class="form-label">Default Country</label>
         <select class="form-control" id="prof-country">
-          <option>Ethiopia</option><option>United States</option><option>Canada</option>
-          <option>United Kingdom</option><option>Australia</option><option>Germany</option>
-          <option>Sweden</option><option>Norway</option><option>Other</option>
+          <option${u.country === 'Ethiopia' ? ' selected' : ''}>Ethiopia</option><option${u.country === 'United States' ? ' selected' : ''}>United States</option><option${u.country === 'Canada' ? ' selected' : ''}>Canada</option>
+          <option${u.country === 'United Kingdom' ? ' selected' : ''}>United Kingdom</option><option${u.country === 'Australia' ? ' selected' : ''}>Australia</option><option${u.country === 'Germany' ? ' selected' : ''}>Germany</option>
+          <option${u.country === 'Sweden' ? ' selected' : ''}>Sweden</option><option${u.country === 'Norway' ? ' selected' : ''}>Norway</option><option${u.country === 'Other' ? ' selected' : ''}>Other</option>
         </select></div>
       <button class="btn btn-gold" onclick="saveProfile()">Save Changes</button>
     </div>`;
   }
 }
 
-function saveProfile() {
-  if (!S.user) S.user = {};
-  S.user.name = document.getElementById('prof-name')?.value || S.user.name;
-  S.user.email = document.getElementById('prof-email')?.value || S.user.email;
-  S.user.phone = document.getElementById('prof-phone')?.value || S.user.phone;
-  saveAuth(); toast('Profile updated ✓', 'success');
-  const nameEl = document.getElementById('acctName');
-  if (nameEl) nameEl.textContent = 'Welcome, ' + (S.user.name || 'back');
+async function saveProfile() {
+  if (!S.user || !S.token) {
+    toast('Please sign in to update your profile.', 'error');
+    return;
+  }
+
+  const name = document.getElementById('prof-name')?.value.trim();
+  if (!name) {
+    toast('Name is required.', 'error');
+    return;
+  }
+
+  const profile = {
+    name,
+    phone: document.getElementById('prof-phone')?.value.trim() || null,
+    country: document.getElementById('prof-country')?.value || S.user.country || 'Ethiopia'
+  };
+
+  try {
+    const res = await api('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profile)
+    });
+    if (!res || res.error) {
+      toast(res?.error || 'Unable to update your profile. Please try again.', 'error');
+      return;
+    }
+
+    Object.assign(S.user, profile);
+    saveAuth();
+    toast('Profile updated ✓', 'success');
+    const nameEl = document.getElementById('acctName');
+    if (nameEl) nameEl.textContent = ocfT('account.greeting', { name: S.user.name || ocfT('account.back') });
+  } catch {
+    toast('Network error. Please try again.', 'error');
+  }
 }
 
 function logoutUser() {
@@ -1556,7 +1732,7 @@ function logoutUser() {
 
 function initAccountPage() {
   const el = document.getElementById('acctName');
-  if (el && S.user) el.textContent = 'Welcome, ' + (S.user.name || S.user.email?.split('@')[0] || 'back');
+  if (el && S.user) el.textContent = ocfT('account.greeting', { name: S.user.name || S.user.email?.split('@')[0] || ocfT('account.back') });
   showAcctTab('orders');
 }
 
@@ -1633,7 +1809,7 @@ async function loadOCFData() {
     
     const cRes = await api('/categories');
     if (cRes && cRes.categories) {
-      const catHtml = cRes.categories.map(c => `<label class="s-opt"><input type="checkbox" data-filter="cat" data-val="${c.slug}" onchange="applyFilters()"> ${c.name}</label>`).join('');
+      const catHtml = cRes.categories.map(c => `<label class="s-opt"><input type="checkbox" data-filter="cat" data-val="${escapeHtml(c.slug)}" onchange="applyFilters()"> ${escapeHtml(ocfCatalogText(c, 'name'))}</label>`).join('');
       const cList = document.getElementById('catFilterList');
       if (cList) cList.innerHTML = catHtml;
     }
@@ -1655,3 +1831,74 @@ async function loadOCFData() {
   loadHomeBundles();
   injectTrackingWidget();
 })();
+
+function refreshLocalizedProductText() {
+  document.querySelectorAll('.product-card[data-product-id]').forEach(card => {
+    const product = PRODUCTS.find(item => String(item.id) === card.dataset.productId);
+    if (!product) return;
+    const name = ocfCatalogText(product, 'name');
+    const nameEl = card.querySelector('.pc-name');
+    const image = card.querySelector('.pc-img img');
+    const category = card.querySelector('.pc-cat');
+    if (nameEl) nameEl.textContent = name;
+    if (image) image.alt = name;
+    if (category) {
+      const gender = product.gender ? product.gender.charAt(0).toUpperCase() + product.gender.slice(1) : '';
+      category.textContent = `${gender} · ${ocfCatalogText(product, 'category_name') || product.cat || ''}`;
+    }
+  });
+  document.querySelectorAll('.checkout-product-name[data-product-id]').forEach(element => {
+    const product = PRODUCTS.find(item => String(item.id) === element.dataset.productId);
+    const cartItem = S.cart.find(item => String(item.id) === element.dataset.productId);
+    if (!product || !cartItem) return;
+    const quantity = element.textContent.match(/×\s*\d+\s*$/)?.[0] || '';
+    element.textContent = `${ocfCatalogText(cartItem, 'name')}${quantity ? ` ${quantity}` : ''}`;
+  });
+  if (S.modalProduct) {
+    const name = ocfCatalogText(S.modalProduct, 'name');
+    const title = document.querySelector('#productModal .modal-body h2');
+    const description = document.querySelector('#productModal #mdesc');
+    if (title) title.textContent = name;
+    if (description) description.textContent = ocfCatalogText(S.modalProduct, 'description');
+    const image = document.getElementById('mainImg');
+    if (image) image.alt = name;
+  }
+}
+
+document.addEventListener('ocf:languagechange', () => {
+  loadHomeProducts();
+  loadHomeBundles();
+  renderRecentlyViewed();
+  renderCartDrawer();
+  refreshLocalizedProductText();
+  if (S.page === 'products') applyFilters();
+  else if (S.page === 'collections') renderCollections();
+  else if (S.page === 'bundles') renderBundlesPage();
+  else if (S.page === 'faq') renderFAQ();
+  else if (S.page === 'wishlist') renderWishlist();
+  else if (S.page === 'account' && S.user) initAccountGreeting();
+  else if (S.page === 'admin' && S.user?.role === 'admin') {
+    if (ADM.tab === 'products') {
+      admLoadProducts();
+      const categorySelect = document.getElementById('apf-category');
+      if (categorySelect) {
+        [...categorySelect.options].forEach(option => {
+          const category = ADM.categories.find(item => String(item.id) === option.value);
+          if (category) option.textContent = ocfCatalogText(category, 'name');
+        });
+
+        function initAccountGreeting() {
+          const element = document.getElementById('acctName');
+          if (element && S.user) {
+            element.textContent = ocfT('account.greeting', {
+              name: S.user.name || S.user.email?.split('@')[0] || ocfT('account.back')
+            });
+          }
+        }
+      }
+    } else if (ADM.tab === 'categories') {
+      admLoadCategories();
+    }
+  }
+  window.OCFI18n?.applyTranslations();
+});

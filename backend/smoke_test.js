@@ -2,6 +2,7 @@
 // Validates 12-step Customer Journey + 9-step Admin Journey
 require('dotenv').config();
 const http = require('http');
+const crypto = require('crypto');
 const app = require('./server');
 const { getDB } = require('./database/db');
 
@@ -12,6 +13,7 @@ function request(method, path, body = null, token = null, headers = {}) {
   return new Promise((resolve, reject) => {
     const url = new URL(BASE + path);
     const reqHeaders = { ...headers };
+    if (method === 'POST' && path === '/orders') reqHeaders['Idempotency-Key'] ||= crypto.randomUUID();
     let reqBody = null;
 
     if (token) reqHeaders['Authorization'] = `Bearer ${token}`;

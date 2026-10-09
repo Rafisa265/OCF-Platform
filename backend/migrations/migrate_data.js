@@ -42,6 +42,30 @@ function maskHash(hash) {
   return hash.slice(0, 7) + '...[REDACTED]';
 }
 
+function buildSecurePgConfig(connectionString) {
+  if (typeof connectionString !== 'string' || !connectionString.trim()) {
+    throw new Error('DATABASE_URL is required and must be a PostgreSQL connection string.');
+  }
+
+  const url = new URL(connectionString.trim());
+  if (!['postgres:', 'postgresql:'].includes(url.protocol)) {
+    throw new Error('DATABASE_URL must use a PostgreSQL protocol.');
+  }
+
+  const existingSslMode = url.searchParams.get('sslmode');
+  if (existingSslMode && existingSslMode.toLowerCase() !== 'verify-full') {
+    url.searchParams.set('sslmode', 'verify-full');
+  } else if (!existingSslMode) {
+    url.searchParams.set('sslmode', 'verify-full');
+  }
+
+  return {
+    connectionString: url.toString(),
+    ssl: { rejectUnauthorized: true },
+    connectionTimeoutMillis: 10000
+  };
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -108,10 +132,7 @@ async function main() {
   console.log('✅ SQLite snapshot validated.\n');
 
   // 3. Connect to PostgreSQL
-  const client = new Client({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-  });
+  const client = new Client(buildSecurePgConfig(process.env.DATABASE_URL));
   await client.connect();
   console.log('🔗 Connected to Supabase PostgreSQL.\n');
 

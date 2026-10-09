@@ -1,6 +1,12 @@
 // test_product_delete.js — Comprehensive verification for DELETE /api/admin/products/:id
 require('dotenv').config();
+if (typeof process.env.ADMIN_PASSWORD !== 'string' || !process.env.ADMIN_PASSWORD.trim()) {
+  console.error('ADMIN_PASSWORD is required to run the product deletion integration test.');
+  process.exit(1);
+}
+
 const http = require('http');
+const crypto = require('crypto');
 const fs = require('fs');
 const pathLib = require('path');
 const app = require('./server');
@@ -17,6 +23,7 @@ function request(method, path, body = null, token = null) {
     const headers = { 'Content-Type': 'application/json' };
     if (payload) headers['Content-Length'] = Buffer.byteLength(payload);
     if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (method === 'POST' && path === '/api/orders') headers['Idempotency-Key'] = crypto.randomUUID();
 
     const req = http.request({
       hostname: url.hostname,
@@ -66,7 +73,7 @@ async function runTests() {
     // 1. Log in as admin
     const adminLogin = await request('POST', '/api/auth/login', {
       email: process.env.ADMIN_EMAIL || 'admin@oromoculturalfashion.com',
-      password: process.env.ADMIN_PASSWORD || 'Admin@OCF2024'
+      password: process.env.ADMIN_PASSWORD
     });
     const adminToken = adminLogin.body?.token;
     assert('Admin login succeeded', !!adminToken, `status ${adminLogin.status}`);
@@ -196,7 +203,7 @@ async function runTests() {
     console.log('═══════════════════════════════════════════════════════\n');
 
   } catch (err) {
-    console.error('Test execution error:', err);
+    console.error('Test execution error; details withheld.');
     failed++;
   } finally {
     server.close();

@@ -7,7 +7,7 @@ const API = _rawCustomApi
   ? (_rawCustomApi.endsWith('/api') ? _rawCustomApi : `${_rawCustomApi}/api`)
   : (typeof window !== 'undefined' && window.location.port === '5000'
       ? '/api'
-      : (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      : (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.port === '8080')
           ? `${window.location.protocol}//${window.location.hostname}:5000/api`
           : '/api'));
 
@@ -33,11 +33,21 @@ function escapeHtml(str) {
 }
 
 // ── API HELPER ──
+// ── API HELPER ──
 async function api(path, opts = {}) {
   try {
     const headers = { 'Content-Type': 'application/json' };
-    if (typeof S !== 'undefined' && S.token) headers['Authorization'] = `Bearer ${S.token}`;
-    const res = await fetch(API + path, { headers, ...opts });
+    if (typeof S !== 'undefined' && S.token) {
+      headers['Authorization'] = `Bearer ${S.token}`;
+    }
+
+    const res = await fetch(API + path, {
+      ...opts,
+      headers: { ...headers, ...(opts.headers || {}) }
+    });
     return await res.json();
-  } catch { return null; }
+  } catch (error) {
+    console.error('API Error:', error);
+    return null;
+  }
 }

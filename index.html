@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/style.css?v=20261008-i18n1">
 <link rel="stylesheet" href="assets/css/admin.css">
 
 </head>
@@ -19,6 +19,10 @@
 
 <!-- ═══ MOBILE MENU ═══ -->
 <div id="mMenu">
+  <div class="language-switcher language-switcher-mobile" role="group" aria-label="Choose language">
+    <button type="button" data-language="en" aria-pressed="true">English</button>
+    <button type="button" data-language="om" aria-pressed="false">Afaan Oromoo</button>
+  </div>
   <a class="m-nav-link" onclick="go('home');closeMMenu()">🏠 Home</a>
   <a class="m-nav-link" onclick="go('men');closeMMenu()">👔 Men</a>
   <a class="m-nav-link" onclick="go('women');closeMMenu()">👗 Women</a>
@@ -50,6 +54,10 @@
       <button class="nav-link" onclick="go('admin')" id="nl-admin" style="display:none">⚙ Admin</button>
     </div>
     <div class="nav-right">
+      <div class="language-switcher" role="group" aria-label="Choose language">
+        <button type="button" data-language="en" aria-pressed="true">English</button>
+        <button type="button" data-language="om" aria-pressed="false">Afaan Oromoo</button>
+      </div>
       <div class="search-wrap">
         <span class="search-icon">🔍</span>
         <input class="search-input" id="searchInput" placeholder="Search…" oninput="doSearch(this.value)" onfocus="if(this.value)showDrop()" onblur="setTimeout(hideDrop,200)">
@@ -119,7 +127,7 @@
         <div class="t-eyebrow">Shop By Gender & Age</div>
         <h2 class="t-display" style="margin-top:.4rem">Find Your Style</h2>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem">
+      <div class="gender-cards-grid">
         <div class="gender-card" onclick="go('men')">
           <div class="gender-card-icon">👔</div>
           <div class="gender-card-title">Men's Fashion</div>
@@ -226,7 +234,7 @@
         <div><div class="t-eyebrow">Maximum Value</div><h2>Bundle & Save</h2></div>
         <button class="btn btn-outline btn-sm" onclick="go('bundles')">All Bundles →</button>
       </div>
-      <div class="grid-3" id="homeBundles"><div class="spinner"></div></div>
+      <div class="grid-3 home-bundles-grid" id="homeBundles"><div class="spinner"></div></div>
     </div>
   </section>
 
@@ -234,10 +242,10 @@
   <div class="nl-section">
     <div class="container">
       <div class="nl-title">Join the OCF Community</div>
-      <p class="nl-sub">Get 10% off your first order + early access to new collections and cultural events</p>
+      <p class="nl-sub">Be first to hear about new collections, artisan stories and cultural events.</p>
       <div class="nl-row">
         <input class="nl-input" id="nlEmail" type="email" placeholder="Your email address">
-        <button class="btn btn-gold" onclick="subscribeNL()">Subscribe & Get 10% Off</button>
+        <button class="btn btn-gold" onclick="subscribeNL()">Subscribe</button>
       </div>
     </div>
   </div>
@@ -1222,6 +1230,9 @@
       <button class="adm-nav-btn" data-tab="products" onclick="goAdmin('products')">
         <span class="adm-icon">📦</span> Products
       </button>
+      <button class="adm-nav-btn" data-tab="categories" onclick="goAdmin('categories')">
+        <span class="adm-icon">🏷️</span> Categories
+      </button>
       <button class="adm-nav-btn" data-tab="users" onclick="goAdmin('users')">
         <span class="adm-icon">👥</span> Users
       </button>
@@ -1244,10 +1255,11 @@
   </div>
 </div>
 
+<script src="assets/js/i18n.js?v=20261008-i18n6"></script>
 <script>window.__OCF_API_URL__ = 'https://ocf-platform.onrender.com';</script>
-<script src="assets/js/api.js"></script>
-<script src="assets/js/app.js"></script>
-<script src="assets/js/admin.js"></script>
+<script src="assets/js/api.js?v=20261008-idempotency1"></script>
+<script src="assets/js/app.js?v=20261008-i18n3"></script>
+<script src="assets/js/admin.js?v=20261008-i18n2"></script>
 
 </body>
 </html>

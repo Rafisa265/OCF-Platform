@@ -2,9 +2,11 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 const { pool, query, queryOne, run } = require('../database/db');
 const { auth, adminOnly, optionalAuth } = require('../middleware/auth');
+const { normalizeOptionalText, parseProductPrice } = require('../input-validation');
 
 const router = express.Router();
 
@@ -43,12 +45,20 @@ const promoLimiter = rateLimit({
   message: { error: 'Too many promo validation attempts. Please try again later.' }
 });
 
+const publicFormLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isTestEnv ? 1000 : 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many form submissions. Please try again later.' }
+});
+
 // ── Sanitized Server Error Response Helper ────────
 const sendServerError = (res, err, customMsg = 'An unexpected server error occurred') => {
-  console.error(err);
-  if (process.env.NODE_ENV === 'development') {
-    return res.status(500).json({ error: customMsg, details: err.message });
-  }
+  const code = typeof err?.code === 'string' && /^[A-Z0-9_]{1,32}$/.test(err.code)
+    ? ` (code ${err.code})`
+    : '';
+  console.error(`${customMsg}${code}`);
   return res.status(500).json({ error: customMsg });
 };
 
@@ -56,6 +66,7 @@ const sendServerError = (res, err, customMsg = 'An unexpected server error occur
 // HELPERS
 // ═══════════════════════════════════════
 const n = v => (v === undefined ? null : v);
+const hasOwn = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
 const generateOrderNumber = () => `OCF-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
 const parseJSON = (val, fallback = []) => {
@@ -72,6 +83,12 @@ const formatProduct = (p) => {
   if (!p) return null;
   return {
     ...p,
+    name_en: p.name_en || p.name,
+    name_om: p.name_om || null,
+    description_en: p.description_en ?? p.description ?? null,
+    description_om: p.description_om ?? null,
+    category_name_en: p.category_name_en || p.category_name || null,
+    category_name_om: p.category_name_om || null,
     price: p.price != null ? parseFloat(p.price) : 0,
     compare_price: p.compare_price != null ? parseFloat(p.compare_price) : null,
     cost_price: p.cost_price != null ? parseFloat(p.cost_price) : null,
@@ -81,6 +98,17 @@ const formatProduct = (p) => {
     images: parseJSON(p.images, []),
     sizes: parseJSON(p.sizes, []),
     colors: parseJSON(p.colors, [])
+  };
+};
+
+const formatCategory = (category) => {
+  if (!category) return null;
+  return {
+    ...category,
+    name_en: category.name_en || category.name,
+    name_om: category.name_om || null,
+    description_en: category.description_en ?? category.description ?? null,
+    description_om: category.description_om ?? null
   };
 };
 
@@ -103,20 +131,33 @@ const formatBundle = (b) => {
 // POST /api/auth/register
 router.post('/auth/register', registerLimiter, async (req, res) => {
   try {
-    const { name, email, password, phone, country } = req.body;
-    if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password are required' });
+    const { name, email, password, phone, country } = req.body || {};
+    if (typeof name !== 'string' || !name.trim() || typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Name, email and password are required' });
+    }
+    const normalizedEmail = email.trim().toLowerCase();
+    if (name.trim().length > 255 || normalizedEmail.length > 255 ||
+        (phone != null && (typeof phone !== 'string' || phone.length > 50)) ||
+        (country != null && (typeof country !== 'string' || country.length > 100))) {
+      return res.status(400).json({ error: 'One or more registration fields are too long or invalid' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return res.status(400).json({ error: 'A valid email address is required' });
+    }
     if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    if (Buffer.byteLength(password, 'utf8') > 72) return res.status(400).json({ error: 'Password must be 72 bytes or fewer' });
 
-    const existing = await queryOne('SELECT id FROM users WHERE email = $1', [email]);
+    const existing = await queryOne('SELECT id FROM users WHERE LOWER(email) = $1', [normalizedEmail]);
     if (existing) return res.status(409).json({ error: 'Email already registered' });
 
     const hash = bcrypt.hashSync(password, 10);
-    await run('INSERT INTO users (name,email,password,phone,country) VALUES ($1,$2,$3,$4,$5)', [name, email, hash, phone || null, country || 'Ethiopia']);
-    const user = await queryOne('SELECT id, name, email, role, phone, country FROM users WHERE email = $1', [email]);
+    await run('INSERT INTO users (name,email,password,phone,country) VALUES ($1,$2,$3,$4,$5)', [name.trim(), normalizedEmail, hash, phone || null, country || 'Ethiopia']);
+    const user = await queryOne('SELECT id, name, email, role, phone, country FROM users WHERE email = $1', [normalizedEmail]);
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 
     res.status(201).json({ message: 'Account created successfully', token, user });
   } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'Email already registered' });
     sendServerError(res, err, 'Failed to register account');
   }
 });
@@ -124,10 +165,12 @@ router.post('/auth/register', registerLimiter, async (req, res) => {
 // POST /api/auth/login
 router.post('/auth/login', authLimiter, async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+    const { email, password } = req.body || {};
+    if (typeof email !== 'string' || !email.trim() || typeof password !== 'string' || !password) {
+      return res.status(400).json({ error: 'Email and password required' });
+    }
 
-    const user = await queryOne('SELECT * FROM users WHERE email = $1', [email]);
+    const user = await queryOne('SELECT * FROM users WHERE LOWER(email) = $1', [email.trim().toLowerCase()]);
     if (!user || !bcrypt.compareSync(password, user.password)) return res.status(401).json({ error: 'Invalid email or password' });
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -144,19 +187,38 @@ router.get('/auth/me', auth, async (req, res) => {
     const user = await queryOne('SELECT id,name,email,role,phone,address,city,country,avatar,created_at FROM users WHERE id = $1', [req.user.id]);
     res.json({ user });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
 // PUT /api/auth/profile
 router.put('/auth/profile', auth, async (req, res) => {
   try {
-    const { name, phone, address, city, country } = req.body;
-    await run('UPDATE users SET name=$1,phone=$2,address=$3,city=$4,country=$5,updated_at=NOW() WHERE id=$6',
-      [name || req.user.name, n(phone), n(address), n(city), n(country), req.user.id]);
+    const fields = req.body || {};
+    const updates = [];
+    const params = [];
+    for (const field of ['name', 'phone', 'address', 'city', 'country']) {
+      if (fields[field] === undefined) continue;
+      if (fields[field] !== null && typeof fields[field] !== 'string') {
+        return res.status(400).json({ error: `${field} must be text` });
+      }
+      if (field === 'name' && !fields[field]?.trim()) {
+        return res.status(400).json({ error: 'Name is required' });
+      }
+      const value = field === 'name' && fields[field] !== null ? fields[field].trim() : fields[field];
+      const maxLengths = { name: 255, phone: 50, address: 1000, city: 100, country: 100 };
+      if (value != null && value.length > maxLengths[field]) {
+        return res.status(400).json({ error: `${field} must be ${maxLengths[field]} characters or fewer` });
+      }
+      params.push(value);
+      updates.push(`${field} = $${params.length}`);
+    }
+    if (!updates.length) return res.status(400).json({ error: 'No profile fields provided' });
+    params.push(req.user.id);
+    await run(`UPDATE users SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${params.length}`, params);
     res.json({ message: 'Profile updated successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err, 'Failed to update profile');
   }
 });
 
@@ -170,7 +232,7 @@ router.post('/auth/change-password', auth, async (req, res) => {
     await run('UPDATE users SET password = $1 WHERE id = $2', [bcrypt.hashSync(newPassword, 10), req.user.id]);
     res.json({ message: 'Password changed successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -182,9 +244,9 @@ router.post('/auth/change-password', auth, async (req, res) => {
 router.get('/categories', async (req, res) => {
   try {
     const cats = await query('SELECT * FROM categories WHERE is_active = true ORDER BY id');
-    res.json({ categories: cats });
+    res.json({ categories: cats.map(formatCategory) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -194,9 +256,9 @@ router.get('/categories/:slug', async (req, res) => {
     const cat = await queryOne('SELECT * FROM categories WHERE slug = $1', [req.params.slug]);
     if (!cat) return res.status(404).json({ error: 'Category not found' });
     const products = (await query('SELECT * FROM products WHERE category_id = $1 AND is_active = true', [cat.id])).map(formatProduct);
-    res.json({ category: cat, products });
+    res.json({ category: formatCategory(cat), products });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -208,7 +270,7 @@ router.get('/categories/:slug', async (req, res) => {
 router.get('/products', async (req, res) => {
   try {
     const { category, region, minPrice, maxPrice, sort, search, featured, bestSeller, page = 1, limit = 12 } = req.query;
-    let sql = 'SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.is_active = true';
+    let sql = 'SELECT p.*, c.name as category_name, c.name_en as category_name_en, c.name_om as category_name_om FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.is_active = true';
     const params = [];
 
     if (category) { params.push(category); sql += ` AND c.slug = $${params.length}`; }
@@ -217,7 +279,7 @@ router.get('/products', async (req, res) => {
     if (maxPrice) { params.push(Number(maxPrice)); sql += ` AND p.price <= $${params.length}`; }
     if (search) {
       params.push(`%${search}%`, `%${search}%`, `%${search}%`);
-      sql += ` AND (p.name ILIKE $${params.length - 2} OR p.description ILIKE $${params.length - 1} OR p.region ILIKE $${params.length})`;
+      sql += ` AND (p.name ILIKE $${params.length - 2} OR p.name_en ILIKE $${params.length - 2} OR p.name_om ILIKE $${params.length - 2} OR p.description ILIKE $${params.length - 1} OR p.description_en ILIKE $${params.length - 1} OR p.description_om ILIKE $${params.length - 1} OR p.region ILIKE $${params.length})`;
     }
     if (featured === 'true') { sql += ' AND p.is_featured = true'; }
     if (bestSeller === 'true') { sql += ' AND p.is_best_seller = true'; }
@@ -245,7 +307,7 @@ router.get('/products/featured', async (req, res) => {
     const products = (await query('SELECT * FROM products WHERE is_featured = true AND is_active = true ORDER BY rating DESC LIMIT 8')).map(formatProduct);
     res.json({ products });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -255,21 +317,21 @@ router.get('/products/best-sellers', async (req, res) => {
     const products = (await query('SELECT * FROM products WHERE is_best_seller = true AND is_active = true ORDER BY review_count DESC LIMIT 8')).map(formatProduct);
     res.json({ products });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
 // GET /api/products/:slug
 router.get('/products/:slug', optionalAuth, async (req, res) => {
   try {
-    const product = await queryOne('SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.slug = $1 AND p.is_active = true', [req.params.slug]);
+    const product = await queryOne('SELECT p.*, c.name as category_name, c.name_en as category_name_en, c.name_om as category_name_om FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.slug = $1 AND p.is_active = true', [req.params.slug]);
     if (!product) return res.status(404).json({ error: 'Product not found' });
     const reviews = await query('SELECT * FROM reviews WHERE product_id = $1 AND is_approved = true ORDER BY created_at DESC', [product.id]);
     const related = (await query('SELECT * FROM products WHERE category_id = $1 AND id != $2 AND is_active = true LIMIT 4', [product.category_id, product.id])).map(formatProduct);
     const wishlisted = req.user ? !!(await queryOne('SELECT id FROM wishlists WHERE user_id = $1 AND product_id = $2', [req.user.id, product.id])) : false;
     res.json({ product: formatProduct(product), reviews, related, wishlisted });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -283,7 +345,7 @@ router.get('/bundles', async (req, res) => {
     const bundles = (await query('SELECT * FROM bundles WHERE is_active = true ORDER BY is_featured DESC, id')).map(formatBundle);
     res.json({ bundles });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -294,7 +356,7 @@ router.get('/bundles/:slug', async (req, res) => {
     if (!bundle) return res.status(404).json({ error: 'Bundle not found' });
     res.json({ bundle: formatBundle(bundle) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -313,40 +375,72 @@ router.get('/cart', auth, async (req, res) => {
     const subtotal = formatted.reduce((s, i) => s + i.price * i.quantity, 0);
     res.json({ items: formatted, subtotal, count: formatted.reduce((s, i) => s + i.quantity, 0) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
 // POST /api/cart
 router.post('/cart', auth, async (req, res) => {
   try {
-    const { product_id, quantity = 1, size = 'M' } = req.body;
-    const product = await queryOne('SELECT id, stock FROM products WHERE id = $1 AND is_active = true', [product_id]);
+    const { product_id, quantity = 1, size = 'M' } = req.body || {};
+    const productId = Number(product_id);
+    const requestedQuantity = Number(quantity);
+    const normalizedSize = typeof size === 'string' ? size.trim() : '';
+    if (!Number.isSafeInteger(productId) || productId < 1) {
+      return res.status(400).json({ error: 'A valid product ID is required' });
+    }
+    if (!Number.isSafeInteger(requestedQuantity) || requestedQuantity < 1) {
+      return res.status(400).json({ error: 'Quantity must be a positive integer' });
+    }
+    if (!normalizedSize || normalizedSize.length > 50) {
+      return res.status(400).json({ error: 'A valid size is required' });
+    }
+
+    const product = await queryOne('SELECT id, stock FROM products WHERE id = $1 AND is_active = true', [productId]);
     if (!product) return res.status(404).json({ error: 'Product not found' });
-    const existing = await queryOne('SELECT * FROM carts WHERE user_id = $1 AND product_id = $2 AND size = $3', [req.user.id, product_id, size]);
+    const existing = await queryOne('SELECT * FROM carts WHERE user_id = $1 AND product_id = $2 AND size = $3', [req.user.id, productId, normalizedSize]);
+    const totalQuantity = requestedQuantity + (existing?.quantity || 0);
+    if (totalQuantity > product.stock) {
+      return res.status(400).json({ error: `Only ${product.stock} item(s) are currently in stock` });
+    }
     if (existing) {
-      await run('UPDATE carts SET quantity = quantity + $1, updated_at = NOW() WHERE id = $2', [quantity, existing.id]);
+      await run('UPDATE carts SET quantity = quantity + $1, updated_at = NOW() WHERE id = $2', [requestedQuantity, existing.id]);
     } else {
-      await run('INSERT INTO carts (user_id, product_id, quantity, size) VALUES ($1,$2,$3,$4)', [req.user.id, product_id, quantity, size]);
+      await run('INSERT INTO carts (user_id, product_id, quantity, size) VALUES ($1,$2,$3,$4)', [req.user.id, productId, requestedQuantity, normalizedSize]);
     }
     res.json({ message: 'Item added to cart' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
 // PUT /api/cart/:id
 router.put('/cart/:id', auth, async (req, res) => {
   try {
-    const { quantity } = req.body;
-    if (quantity < 1) {
+    const quantity = Number(req.body?.quantity);
+    const cartId = Number(req.params.id);
+    if (!Number.isSafeInteger(cartId) || cartId < 1) {
+      return res.status(400).json({ error: 'A valid cart item ID is required' });
+    }
+    if (!Number.isSafeInteger(quantity) || quantity < 0) {
+      return res.status(400).json({ error: 'Quantity must be a non-negative integer' });
+    }
+    const item = await queryOne(
+      'SELECT c.id, p.stock FROM carts c JOIN products p ON p.id = c.product_id WHERE c.id = $1 AND c.user_id = $2',
+      [cartId, req.user.id]
+    );
+    if (!item) return res.status(404).json({ error: 'Cart item not found' });
+    if (quantity === 0) {
       await run('DELETE FROM carts WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
       return res.json({ message: 'Item removed' });
     }
-    await run('UPDATE carts SET quantity = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3', [quantity, req.params.id, req.user.id]);
+    if (quantity > item.stock) {
+      return res.status(400).json({ error: `Only ${item.stock} item(s) are currently in stock` });
+    }
+    await run('UPDATE carts SET quantity = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3', [quantity, cartId, req.user.id]);
     res.json({ message: 'Cart updated' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -356,7 +450,7 @@ router.delete('/cart/:id', auth, async (req, res) => {
     await run('DELETE FROM carts WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
     res.json({ message: 'Item removed from cart' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -366,7 +460,7 @@ router.delete('/cart', auth, async (req, res) => {
     await run('DELETE FROM carts WHERE user_id = $1', [req.user.id]);
     res.json({ message: 'Cart cleared' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -385,7 +479,7 @@ router.get('/wishlist', auth, async (req, res) => {
     );
     res.json({ items: items.map(i => ({ ...i, price: parseFloat(i.price), compare_price: i.compare_price ? parseFloat(i.compare_price) : null, images: parseJSON(i.images, []) })) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -401,7 +495,7 @@ router.post('/wishlist/:productId', auth, async (req, res) => {
       res.json({ message: 'Added to wishlist', wishlisted: true });
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -411,43 +505,160 @@ router.post('/wishlist/:productId', auth, async (req, res) => {
 
 // POST /api/orders (Transactional & Rate-limited)
 router.post('/orders', orderLimiter, optionalAuth, async (req, res) => {
+  const idempotencyKey = req.get('Idempotency-Key');
+  if (typeof idempotencyKey !== 'string' || !/^[A-Za-z0-9._:-]{16,128}$/.test(idempotencyKey)) {
+    return res.status(400).json({ error: 'A valid Idempotency-Key header is required' });
+  }
+
   const client = await pool.connect();
   try {
-    const { items, shipping, payment_method, promo_code, notes } = req.body;
-    if (!items?.length) return res.status(400).json({ error: 'Order must have at least one item' });
-    if (!shipping?.email || !shipping?.address) return res.status(400).json({ error: 'Shipping information required' });
+    const { items, shipping, payment_method, promo_code, notes } = req.body || {};
+    if (!Array.isArray(items) || !items.length) return res.status(400).json({ error: 'Order must have at least one item' });
+    if (!shipping || typeof shipping !== 'object' || Array.isArray(shipping) || typeof shipping.name !== 'string' ||
+        !shipping.name.trim() || typeof shipping.email !== 'string' ||
+        typeof shipping.phone !== 'string' || !shipping.phone.trim() ||
+        typeof shipping.address !== 'string' || !shipping.address.trim() ||
+        typeof shipping.city !== 'string' || !shipping.city.trim()) {
+      return res.status(400).json({ error: 'Shipping information required' });
+    }
+    const shippingLimits = { name: 255, email: 255, phone: 50, address: 1000, city: 100, state: 100, zip: 50, country: 100 };
+    for (const [field, limit] of Object.entries(shippingLimits)) {
+      const value = shipping[field];
+      if (value != null && (typeof value !== 'string' || value.length > limit)) {
+        return res.status(400).json({ error: `Shipping ${field} must be valid text of ${limit} characters or fewer` });
+      }
+    }
+    if (promo_code != null && (typeof promo_code !== 'string' || !promo_code.trim() || promo_code.length > 50)) {
+      return res.status(400).json({ error: 'Promo code must be valid text' });
+    }
+    if (payment_method != null && (typeof payment_method !== 'string' || payment_method.length > 50)) {
+      return res.status(400).json({ error: 'Payment method must be valid text' });
+    }
+    if (notes != null && (typeof notes !== 'string' || notes.length > 2000)) {
+      return res.status(400).json({ error: 'Order notes must be text of 2000 characters or fewer' });
+    }
 
-    if (!shipping.email.includes('@')) {
+    const normalizedShipping = {
+      name: shipping.name.trim(),
+      email: shipping.email.trim().toLowerCase(),
+      phone: shipping.phone.trim(),
+      address: shipping.address.trim(),
+      city: shipping.city.trim(),
+      state: typeof shipping.state === 'string' && shipping.state.trim() ? shipping.state.trim() : null,
+      zip: typeof shipping.zip === 'string' && shipping.zip.trim() ? shipping.zip.trim() : null,
+      country: typeof shipping.country === 'string' && shipping.country.trim()
+        ? shipping.country.trim()
+        : 'Ethiopia'
+    };
+    const normalizedPaymentMethod = typeof payment_method === 'string' && payment_method.trim()
+      ? payment_method.trim()
+      : 'pending';
+    const normalizedPromoCode = typeof promo_code === 'string' && promo_code.trim()
+      ? promo_code.trim().toUpperCase()
+      : null;
+    const normalizedNotes = typeof notes === 'string' && notes.trim() ? notes.trim() : null;
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedShipping.email)) {
       return res.status(400).json({ error: 'Valid shipping email required' });
     }
 
-    // Validate quantities
+    const normalizedItems = [];
+    const demandByProduct = new Map();
     for (const item of items) {
-      const qty = parseInt(item.quantity, 10);
-      if (!Number.isInteger(qty) || qty <= 0) {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) {
+        return res.status(400).json({ error: 'Each order item must be an object' });
+      }
+      const productId = Number(item?.product_id);
+      const qty = Number(item?.quantity);
+      if (!Number.isSafeInteger(productId) || productId < 1) {
+        return res.status(400).json({ error: 'Each item must have a valid product ID' });
+      }
+      if (!Number.isSafeInteger(qty) || qty <= 0) {
         return res.status(400).json({ error: 'Item quantity must be a positive integer' });
       }
+      const size = item.size === undefined ? 'M' : item.size;
+      if (typeof size !== 'string' || !size.trim() || size.length > 50) {
+        return res.status(400).json({ error: 'Item size must be valid text' });
+      }
+      normalizedItems.push({ productId, quantity: qty, size: size.trim() });
+      demandByProduct.set(productId, (demandByProduct.get(productId) || 0) + qty);
     }
+
+    const requestFingerprint = crypto.createHash('sha256').update(JSON.stringify({
+      userId: req.user?.id || null,
+      items: normalizedItems,
+      shipping: [
+        normalizedShipping.name,
+        normalizedShipping.email,
+        normalizedShipping.phone,
+        normalizedShipping.address,
+        normalizedShipping.city,
+        normalizedShipping.state,
+        normalizedShipping.zip,
+        normalizedShipping.country
+      ],
+      paymentMethod: normalizedPaymentMethod,
+      promoCode: normalizedPromoCode,
+      notes: normalizedNotes
+    })).digest('hex');
 
     await client.query('BEGIN');
 
-    // Calculate totals and verify current stock atomically
-    let subtotal = 0;
-    const orderItems = [];
-    for (const item of items) {
-      const qty = parseInt(item.quantity, 10);
-      const prodRes = await client.query('SELECT * FROM products WHERE id = $1 FOR UPDATE', [item.product_id]);
-      const product = prodRes.rows[0];
-      if (!product) {
-        await client.query('ROLLBACK');
-        return res.status(404).json({ error: `Product ${item.product_id} not found` });
+    // The unique key claim serializes concurrent requests before inventory is locked or changed.
+    const claim = await client.query(
+      `INSERT INTO checkout_idempotency (idempotency_key, request_fingerprint)
+       VALUES ($1, $2)
+       ON CONFLICT (idempotency_key) DO NOTHING
+       RETURNING idempotency_key`,
+      [idempotencyKey, requestFingerprint]
+    );
+    if (!claim.rowCount) {
+      const existing = await client.query(
+        `SELECT ci.request_fingerprint, ci.order_id, o.order_number
+         FROM checkout_idempotency ci
+         LEFT JOIN orders o ON o.id = ci.order_id
+         WHERE ci.idempotency_key = $1`,
+        [idempotencyKey]
+      );
+      await client.query('ROLLBACK');
+      const previous = existing.rows[0];
+      if (previous?.request_fingerprint === requestFingerprint && previous.order_id) {
+        const order = await queryOne('SELECT * FROM orders WHERE id = $1', [previous.order_id]);
+        if (order) {
+          return res.status(200).json({
+            message: 'Order was already processed',
+            order,
+            orderNumber: previous.order_number,
+            replayed: true
+          });
+        }
       }
+      return res.status(409).json({
+        error: 'Idempotency key has already been used for a different or incomplete checkout'
+      });
+    }
 
-      if (product.stock < qty) {
+    // Lock products in a stable order and check combined demand, including repeated cart lines.
+    const products = new Map();
+    for (const productId of [...demandByProduct.keys()].sort((a, b) => a - b)) {
+      const prodRes = await client.query('SELECT * FROM products WHERE id = $1 FOR UPDATE', [productId]);
+      const product = prodRes.rows[0];
+      if (!product || !product.is_active) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ error: `Product ${productId} not found or unavailable` });
+      }
+      if (product.stock < demandByProduct.get(productId)) {
         await client.query('ROLLBACK');
         return res.status(400).json({ error: `Product "${product.name}" has insufficient stock (${product.stock} available)` });
       }
+      products.set(productId, product);
+    }
 
+    let subtotal = 0;
+    const orderItems = [];
+    for (const item of normalizedItems) {
+      const product = products.get(item.productId);
+      const qty = item.quantity;
       const linePrice = parseFloat(product.price);
       const lineTotal = linePrice * qty;
       subtotal += lineTotal;
@@ -456,7 +667,7 @@ router.post('/orders', orderLimiter, optionalAuth, async (req, res) => {
         name: product.name,
         price: linePrice,
         quantity: qty,
-        size: item.size || 'M',
+        size: item.size,
         total: lineTotal
       });
     }
@@ -464,15 +675,26 @@ router.post('/orders', orderLimiter, optionalAuth, async (req, res) => {
     // Validate promo against subtotal
     let discount = 0;
     let promoRecord = null;
-    if (promo_code) {
-      const pRes = await client.query('SELECT * FROM promo_codes WHERE code = $1 AND is_active = true FOR UPDATE', [promo_code.toUpperCase()]);
+    if (normalizedPromoCode) {
+      const pRes = await client.query('SELECT * FROM promo_codes WHERE code = $1 AND is_active = true FOR UPDATE', [normalizedPromoCode]);
       promoRecord = pRes.rows[0];
-      if (promoRecord && subtotal >= parseFloat(promoRecord.min_order) && promoRecord.uses < promoRecord.max_uses) {
-        discount = promoRecord.type === 'percent' ? subtotal * (parseFloat(promoRecord.value) / 100) : parseFloat(promoRecord.value);
+      if (!promoRecord || (promoRecord.expires_at && new Date(promoRecord.expires_at) <= new Date())) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Promo code is invalid or expired' });
       }
+      if (promoRecord.uses >= promoRecord.max_uses) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Promo code has reached its usage limit' });
+      }
+      if (subtotal < parseFloat(promoRecord.min_order)) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: `Minimum order of Br ${parseFloat(promoRecord.min_order).toLocaleString()} required` });
+      }
+      const promoValue = parseFloat(promoRecord.value);
+      discount = Math.min(subtotal, promoRecord.type === 'percent' ? subtotal * (promoValue / 100) : promoValue);
     }
 
-    const shippingCost = subtotal >= 15000 ? 0 : (shipping.country === 'Ethiopia' ? 800 : 2500);
+    const shippingCost = subtotal >= 15000 ? 0 : (normalizedShipping.country === 'Ethiopia' ? 800 : 2500);
     const total = subtotal - discount + shippingCost;
     const orderNumber = generateOrderNumber();
 
@@ -480,12 +702,17 @@ router.post('/orders', orderLimiter, optionalAuth, async (req, res) => {
       (order_number,user_id,guest_email,subtotal,shipping_cost,discount,total,payment_method,
        shipping_name,shipping_email,shipping_phone,shipping_address,shipping_city,shipping_state,shipping_zip,shipping_country,notes)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING id`,
-      [orderNumber, req.user?.id || null, shipping.email, subtotal, shippingCost, discount, total,
-       payment_method || 'pending', shipping.name, shipping.email, shipping.phone,
-       shipping.address, shipping.city, shipping.state, shipping.zip, shipping.country, notes || null]
+      [orderNumber, req.user?.id || null, shipping.email.trim().toLowerCase(), subtotal, shippingCost, discount, total,
+       normalizedPaymentMethod, normalizedShipping.name, normalizedShipping.email, normalizedShipping.phone,
+       normalizedShipping.address, normalizedShipping.city, normalizedShipping.state, normalizedShipping.zip,
+       normalizedShipping.country, normalizedNotes]
     );
 
     const orderId = insertOrderRes.rows[0].id;
+    await client.query(
+      'UPDATE checkout_idempotency SET order_id = $1 WHERE idempotency_key = $2',
+      [orderId, idempotencyKey]
+    );
 
     // Insert order items and deduct stock
     for (const item of orderItems) {
@@ -588,14 +815,21 @@ router.get('/orders/:id', optionalAuth, async (req, res) => {
 // POST /api/promo/validate (Rate-limited)
 router.post('/promo/validate', promoLimiter, async (req, res) => {
   try {
-    const { code, subtotal } = req.body;
-    const promo = await queryOne('SELECT * FROM promo_codes WHERE code = $1 AND is_active = true', [code?.toUpperCase()]);
+    const { code, subtotal } = req.body || {};
+    const orderSubtotal = Number(subtotal);
+    if (typeof code !== 'string' || !code.trim() || !Number.isFinite(orderSubtotal) || orderSubtotal < 0) {
+      return res.status(400).json({ valid: false, error: 'A promo code and valid subtotal are required' });
+    }
+    const promo = await queryOne('SELECT * FROM promo_codes WHERE code = $1 AND is_active = true', [code.trim().toUpperCase()]);
     if (!promo) return res.status(404).json({ valid: false, error: 'Invalid promo code' });
+    if (promo.expires_at && new Date(promo.expires_at) <= new Date()) {
+      return res.status(400).json({ valid: false, error: 'Promo code has expired' });
+    }
     if (promo.uses >= promo.max_uses) return res.status(400).json({ valid: false, error: 'Promo code has reached its usage limit' });
-    if (subtotal < parseFloat(promo.min_order)) return res.status(400).json({ valid: false, error: `Minimum order of Br ${parseFloat(promo.min_order).toLocaleString()} required` });
+    if (orderSubtotal < parseFloat(promo.min_order)) return res.status(400).json({ valid: false, error: `Minimum order of Br ${parseFloat(promo.min_order).toLocaleString()} required` });
 
     const val = parseFloat(promo.value);
-    const discount = promo.type === 'percent' ? subtotal * (val / 100) : val;
+    const discount = Math.min(orderSubtotal, promo.type === 'percent' ? orderSubtotal * (val / 100) : val);
     res.json({ valid: true, promo, discount, message: `${promo.type === 'percent' ? val + '%' : 'Br ' + val} discount applied!` });
   } catch (err) {
     sendServerError(res, err, 'Failed to validate promo code');
@@ -613,7 +847,7 @@ router.get('/products/:id/reviews', async (req, res) => {
     const avg = reviews.length ? reviews.reduce((s, r) => s + parseFloat(r.rating), 0) / reviews.length : 0;
     res.json({ reviews, average: Math.round(avg * 10) / 10, count: reviews.length });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -638,7 +872,7 @@ router.post('/products/:id/reviews', optionalAuth, async (req, res) => {
 
     res.status(201).json({ message: 'Review submitted successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -647,28 +881,44 @@ router.post('/products/:id/reviews', optionalAuth, async (req, res) => {
 // ═══════════════════════════════════════
 
 // POST /api/contact
-router.post('/contact', async (req, res) => {
+router.post('/contact', publicFormLimiter, async (req, res) => {
   try {
-    const { name, email, phone, subject, message } = req.body;
-    if (!name || !email || !message) return res.status(400).json({ error: 'Name, email and message are required' });
-    await run('INSERT INTO contacts (name,email,phone,subject,message) VALUES ($1,$2,$3,$4,$5)', [name, email, phone || null, subject || null, message]);
+    const { name, email, phone, subject, message } = req.body || {};
+    if (typeof name !== 'string' || !name.trim() || typeof email !== 'string' ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || typeof message !== 'string' || !message.trim()) {
+      return res.status(400).json({ error: 'A name, valid email and message are required' });
+    }
+    if (name.trim().length > 255 || email.trim().length > 255 ||
+        (phone != null && (typeof phone !== 'string' || phone.length > 50)) ||
+        (subject != null && (typeof subject !== 'string' || subject.length > 255))) {
+      return res.status(400).json({ error: 'One or more contact fields are too long or invalid' });
+    }
+    await run('INSERT INTO contacts (name,email,phone,subject,message) VALUES ($1,$2,$3,$4,$5)',
+      [name.trim(), email.trim().toLowerCase(), phone?.trim() || null, subject?.trim() || null, message.trim()]);
     res.json({ message: 'Message sent successfully. We\'ll respond within 24 hours.' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err, 'Failed to send message');
   }
 });
 
 // POST /api/newsletter
-router.post('/newsletter', async (req, res) => {
+router.post('/newsletter', publicFormLimiter, async (req, res) => {
   try {
-    const { email, name } = req.body;
-    if (!email || !email.includes('@')) return res.status(400).json({ error: 'Valid email required' });
-    const exists = await queryOne('SELECT id FROM newsletter WHERE email = $1', [email]);
+    const { email, name } = req.body || {};
+    if (typeof email !== 'string' || email.trim().length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return res.status(400).json({ error: 'Valid email required' });
+    }
+    const normalizedEmail = email.trim().toLowerCase();
+    if (name != null && (typeof name !== 'string' || name.length > 255)) {
+      return res.status(400).json({ error: 'Name must be 255 characters or fewer' });
+    }
+    const exists = await queryOne('SELECT id FROM newsletter WHERE LOWER(email) = $1', [normalizedEmail]);
     if (exists) return res.status(409).json({ error: 'Email already subscribed' });
-    await run('INSERT INTO newsletter (email, name) VALUES ($1,$2)', [email, name || null]);
-    res.json({ message: 'Subscribed! Check your email for your 10% welcome discount.' });
+    await run('INSERT INTO newsletter (email, name) VALUES ($1,$2)', [normalizedEmail, name?.trim() || null]);
+    res.json({ message: 'Successfully subscribed to the newsletter.' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    if (err.code === '23505') return res.status(409).json({ error: 'Email already subscribed' });
+    sendServerError(res, err, 'Failed to subscribe');
   }
 });
 
@@ -676,7 +926,6 @@ router.post('/newsletter', async (req, res) => {
 // IMAGE UPLOAD (multer — admin only)
 // ═══════════════════════════════════════
 const multer = require('multer');
-const crypto = require('crypto');
 const fs = require('fs');
 const pathLib = require('path');
 
@@ -737,9 +986,9 @@ router.post('/admin/upload', auth, adminOnly, (req, res) => {
         return res.status(413).json({ error: 'File too large. Maximum allowed size is 5 MB.' });
       }
       if (err.code === 'INVALID_FILE_TYPE') {
-        return res.status(415).json({ error: err.message });
+        return res.status(415).json({ error: 'Only JPEG, PNG and WebP images are allowed' });
       }
-      return res.status(400).json({ error: err.message || 'Upload failed' });
+      return res.status(400).json({ error: 'Upload failed' });
     }
 
     if (!req.file) {
@@ -808,7 +1057,7 @@ router.get('/admin/dashboard', auth, adminOnly, async (req, res) => {
     };
     res.json({ stats });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -842,28 +1091,51 @@ router.put('/admin/orders/:id', auth, adminOnly, async (req, res) => {
 // GET /api/admin/products
 router.get('/admin/products', auth, adminOnly, async (req, res) => {
   try {
-    const products = (await query('SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id ORDER BY p.created_at DESC')).map(formatProduct);
+    const products = (await query('SELECT p.*, c.name as category_name, c.name_en as category_name_en, c.name_om as category_name_om FROM products p LEFT JOIN categories c ON p.category_id = c.id ORDER BY p.created_at DESC')).map(formatProduct);
     res.json({ products });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
 // POST /api/admin/products
 router.post('/admin/products', auth, adminOnly, async (req, res) => {
   try {
-    const { name, slug, description, short_desc, price, compare_price, cost_price, stock, region, category_id, sku, material, care, sizes, images, is_best_seller, is_featured, badge, badge_text } = req.body;
-    if (!name || !price) return res.status(400).json({ error: 'Name and price required' });
+    const body = req.body;
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return res.status(400).json({ error: 'Product fields are required' });
+    }
+    const { name, name_en, name_om, slug, description, description_en, description_om, short_desc, price, compare_price, cost_price, stock, region, category_id, sku, material, care, sizes, images, is_best_seller, is_featured, badge, badge_text } = body;
+    const englishName = name_en ?? name;
+    const oromoName = typeof name_om === 'string' && name_om.trim() ? name_om.trim() : null;
+    const englishDescription = description_en ?? description ?? null;
+    const oromoDescription = typeof description_om === 'string' && description_om.trim() ? description_om.trim() : null;
+    const productPrice = parseProductPrice(price);
+    if (typeof englishName !== 'string' || !englishName.trim()) {
+      return res.status(400).json({ error: 'An English product name is required' });
+    }
+    if ((name_om != null && typeof name_om !== 'string') ||
+        (description_om != null && typeof description_om !== 'string') ||
+        englishName.trim().length > 255 || (oromoName && oromoName.length > 255) ||
+        (englishDescription != null && typeof englishDescription !== 'string') ||
+        (oromoDescription != null && typeof oromoDescription !== 'string')) {
+      return res.status(400).json({ error: 'Product translations are invalid or too long' });
+    }
+    if (productPrice === null) {
+      return res.status(400).json({ error: 'A valid product price is required' });
+    }
 
     const result = await run(
-      `INSERT INTO products (name,slug,description,short_desc,price,compare_price,cost_price,stock,region,category_id,sku,material,care,sizes,images,is_best_seller,is_featured,badge,badge_text)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING id`,
+      `INSERT INTO products (name,name_en,name_om,slug,description,description_en,description_om,short_desc,price,compare_price,cost_price,stock,region,category_id,sku,material,care,sizes,images,is_best_seller,is_featured,badge,badge_text)
+       VALUES ($1,$1,$2,$3,$4,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21) RETURNING id`,
       [
-        name,
-        slug || name.toLowerCase().replace(/\s+/g, '-'),
-        n(description),
+        englishName.trim(),
+        oromoName,
+        slug || englishName.trim().toLowerCase().replace(/\s+/g, '-'),
+        n(englishDescription),
+        n(oromoDescription),
         n(short_desc),
-        price,
+        productPrice,
         n(compare_price) || null,
         n(cost_price) || null,
         stock || 0,
@@ -882,7 +1154,7 @@ router.post('/admin/products', auth, adminOnly, async (req, res) => {
     );
     res.status(201).json({ message: 'Product created', id: result.lastInsertRowid });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -890,11 +1162,190 @@ router.post('/admin/products', auth, adminOnly, async (req, res) => {
 router.put('/admin/products/:id', auth, adminOnly, async (req, res) => {
   try {
     const p = req.body;
-    await run(`UPDATE products SET name=$1,description=$2,short_desc=$3,price=$4,compare_price=$5,stock=$6,region=$7,material=$8,care=$9,is_best_seller=$10,is_featured=$11,is_active=$12,updated_at=NOW() WHERE id=$13`,
-      [p.name, n(p.description), n(p.short_desc), p.price, n(p.compare_price) || null, p.stock || 0, n(p.region) || '', n(p.material) || null, n(p.care) || null, p.is_best_seller ? true : false, p.is_featured ? true : false, p.is_active !== false, req.params.id]);
+    if (!p || typeof p !== 'object' || Array.isArray(p)) {
+      return res.status(400).json({ error: 'Product fields are required' });
+    }
+    const rawId = String(req.params.id).trim();
+    if (!/^[1-9]\d*$/.test(rawId) || !Number.isSafeInteger(Number(rawId))) {
+      return res.status(400).json({ error: 'Invalid product ID' });
+    }
+    const productId = Number(rawId);
+    const existing = await queryOne('SELECT * FROM products WHERE id = $1', [productId]);
+    if (!existing) return res.status(404).json({ error: 'Product not found' });
+
+    const englishNameValue = hasOwn(p, 'name_en')
+      ? p.name_en
+      : hasOwn(p, 'name')
+        ? p.name
+        : (existing.name_en ?? existing.name);
+    const englishName = typeof englishNameValue === 'string' ? englishNameValue.trim() : '';
+    if (!englishName || englishName.length > 255) {
+      return res.status(400).json({ error: 'An English product name is required (maximum 255 characters)' });
+    }
+
+    const oromoName = hasOwn(p, 'name_om')
+      ? normalizeOptionalText(p.name_om)
+      : existing.name_om;
+    const englishDescriptionValue = hasOwn(p, 'description_en')
+      ? p.description_en
+      : hasOwn(p, 'description')
+        ? p.description
+        : (existing.description_en ?? existing.description);
+    const oromoDescriptionValue = hasOwn(p, 'description_om') ? p.description_om : existing.description_om;
+    const translations = [englishDescriptionValue, oromoDescriptionValue];
+    if (oromoName === undefined ||
+        (oromoName != null && oromoName.length > 255) ||
+        translations.some(value => value != null &&
+          (typeof value !== 'string' || value.length > 10000))) {
+      return res.status(400).json({ error: 'Product translations are invalid or too long' });
+    }
+    if (hasOwn(p, 'short_desc') &&
+        p.short_desc != null &&
+        (typeof p.short_desc !== 'string' || p.short_desc.length > 1000)) {
+      return res.status(400).json({ error: 'Short description must be text of 1000 characters or fewer' });
+    }
+
+    const productPrice = parseProductPrice(hasOwn(p, 'price') ? p.price : existing.price);
+    if (productPrice === null) {
+      return res.status(400).json({ error: 'A valid non-negative product price is required' });
+    }
+    const stockValue = hasOwn(p, 'stock') ? p.stock : existing.stock;
+    const stockText = typeof stockValue === 'string' ? stockValue.trim() : stockValue;
+    if ((typeof stockText !== 'number' && typeof stockText !== 'string') ||
+        (typeof stockText === 'string' && !/^(0|[1-9]\d*)$/.test(stockText)) ||
+        !Number.isSafeInteger(Number(stockText)) || Number(stockText) < 0 ||
+        Number(stockText) > 2147483647) {
+      return res.status(400).json({ error: 'Stock must be a non-negative integer' });
+    }
+
+    const result = await run(`UPDATE products SET name=$1,name_en=$1,name_om=$2,description=$3,description_en=$3,description_om=$4,short_desc=$5,price=$6,compare_price=$7,stock=$8,region=$9,material=$10,care=$11,is_best_seller=$12,is_featured=$13,is_active=$14,updated_at=NOW() WHERE id=$15 RETURNING id`,
+      [englishName, oromoName, n(englishDescriptionValue), n(oromoDescriptionValue), n(p.short_desc), productPrice, n(p.compare_price) || null, Number(stockText), n(p.region) || '', n(p.material) || null, n(p.care) || null, p.is_best_seller ? true : false, p.is_featured ? true : false, p.is_active !== false, productId]);
+    if (!result.rowCount) return res.status(404).json({ error: 'Product not found' });
     res.json({ message: 'Product updated' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err, 'Failed to update product');
+  }
+});
+
+// Admin category management
+router.get('/admin/categories', auth, adminOnly, async (req, res) => {
+  try {
+    const categories = (await query('SELECT * FROM categories ORDER BY id')).map(formatCategory);
+    res.json({ categories });
+  } catch (err) {
+    sendServerError(res, err, 'Failed to fetch categories');
+  }
+});
+
+router.post('/admin/categories', auth, adminOnly, async (req, res) => {
+  try {
+    const body = req.body;
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return res.status(400).json({ error: 'Category fields are required' });
+    }
+    const englishNameValue = body.name_en ?? body.name;
+    const englishName = typeof englishNameValue === 'string' ? englishNameValue.trim() : '';
+    const oromoName = normalizeOptionalText(body.name_om);
+    const englishDescription = body.description_en ?? body.description ?? null;
+    const oromoDescription = normalizeOptionalText(body.description_om);
+    if (!englishName || englishName.length > 255 ||
+        oromoName === undefined || (oromoName && oromoName.length > 255) ||
+        (englishDescription != null &&
+          (typeof englishDescription !== 'string' || englishDescription.length > 10000)) ||
+        oromoDescription === undefined ||
+        (oromoDescription != null && oromoDescription.length > 10000) ||
+        (body.region != null && (typeof body.region !== 'string' || body.region.length > 100)) ||
+        (body.image != null && (typeof body.image !== 'string' || body.image.length > 2048))) {
+      return res.status(400).json({ error: 'An English category name is required (maximum 255 characters)' });
+    }
+    const categorySlug = hasOwn(body, 'slug')
+      ? (typeof body.slug === 'string' ? body.slug.trim().toLowerCase() : '')
+      : englishName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    if (!categorySlug || categorySlug.length > 255 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(categorySlug)) {
+      return res.status(400).json({ error: 'Category slug must contain only letters, numbers, and single hyphen separators' });
+    }
+    const duplicateName = await queryOne(
+      'SELECT id FROM categories WHERE LOWER(name_en) = LOWER($1) OR LOWER(name) = LOWER($1) LIMIT 1',
+      [englishName]
+    );
+    if (duplicateName) return res.status(409).json({ error: 'A category with this name already exists' });
+    const result = await run(
+      'INSERT INTO categories (name,name_en,name_om,slug,description,description_en,description_om,image,region) VALUES ($1,$1,$2,$3,$4,$4,$5,$6,$7) RETURNING id',
+      [englishName, oromoName, categorySlug, englishDescription, oromoDescription, n(body.image), n(body.region)]
+    );
+    res.status(201).json({ message: 'Category created', id: result.rows[0].id });
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'A category with this name or slug already exists' });
+    sendServerError(res, err, 'Failed to create category');
+  }
+});
+
+router.put('/admin/categories/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const body = req.body;
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return res.status(400).json({ error: 'Category fields are required' });
+    }
+    const rawId = String(req.params.id).trim();
+    if (!/^[1-9]\d*$/.test(rawId) || !Number.isSafeInteger(Number(rawId))) {
+      return res.status(400).json({ error: 'Invalid category ID' });
+    }
+    const categoryId = Number(rawId);
+    const existing = await queryOne('SELECT id, slug FROM categories WHERE id = $1', [categoryId]);
+    if (!existing) return res.status(404).json({ error: 'Category not found' });
+
+    const englishNameValue = body.name_en ?? body.name;
+    const englishName = typeof englishNameValue === 'string' ? englishNameValue.trim() : '';
+    const oromoName = normalizeOptionalText(body.name_om);
+    const englishDescription = body.description_en ?? body.description ?? null;
+    const oromoDescription = normalizeOptionalText(body.description_om);
+    if (!englishName || englishName.length > 255 ||
+        oromoName === undefined || (oromoName && oromoName.length > 255) ||
+        (englishDescription != null &&
+          (typeof englishDescription !== 'string' || englishDescription.length > 10000)) ||
+        oromoDescription === undefined ||
+        (oromoDescription != null && oromoDescription.length > 10000) ||
+        (body.region != null && (typeof body.region !== 'string' || body.region.length > 100)) ||
+        (body.image != null && (typeof body.image !== 'string' || body.image.length > 2048)) ||
+        (hasOwn(body, 'is_active') && typeof body.is_active !== 'boolean')) {
+      return res.status(400).json({ error: 'An English category name is required (maximum 255 characters)' });
+    }
+    const categorySlug = hasOwn(body, 'slug')
+      ? (typeof body.slug === 'string' ? body.slug.trim().toLowerCase() : '')
+      : existing.slug;
+    if (!categorySlug || categorySlug.length > 255 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(categorySlug)) {
+      return res.status(400).json({ error: 'Category slug must contain only letters, numbers, and single hyphen separators' });
+    }
+    const duplicateName = await queryOne(
+      'SELECT id FROM categories WHERE (LOWER(name_en) = LOWER($1) OR LOWER(name) = LOWER($1)) AND id <> $2 LIMIT 1',
+      [englishName, categoryId]
+    );
+    if (duplicateName) return res.status(409).json({ error: 'A category with this name already exists' });
+    const result = await run(
+      `UPDATE categories SET name=$1,name_en=$1,name_om=CASE WHEN $10 THEN $2 ELSE name_om END,slug=$3,description=$4,description_en=$4,description_om=CASE WHEN $11 THEN $5 ELSE description_om END,image=$6,region=$7,is_active=$8
+       WHERE id=$9`,
+      [englishName, oromoName, categorySlug, englishDescription, oromoDescription, n(body.image), n(body.region),
+        body.is_active !== false, categoryId, hasOwn(body, 'name_om'), hasOwn(body, 'description_om')]
+    );
+    if (!result.rowCount) return res.status(404).json({ error: 'Category not found' });
+    res.json({ message: 'Category updated' });
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'A category with this name or slug already exists' });
+    sendServerError(res, err, 'Failed to update category');
+  }
+});
+
+router.delete('/admin/categories/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const rawId = String(req.params.id).trim();
+    if (!/^[1-9]\d*$/.test(rawId) || !Number.isSafeInteger(Number(rawId))) {
+      return res.status(400).json({ error: 'Invalid category ID' });
+    }
+    const result = await run('DELETE FROM categories WHERE id=$1', [Number(rawId)]);
+    if (!result.rowCount) return res.status(404).json({ error: 'Category not found' });
+    res.json({ message: 'Category deleted' });
+  } catch (err) {
+    sendServerError(res, err, 'Failed to delete category');
   }
 });
 
@@ -964,7 +1415,7 @@ router.get('/admin/messages', auth, adminOnly, async (req, res) => {
     const messages = await query('SELECT * FROM contacts ORDER BY created_at DESC');
     res.json({ messages });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -974,7 +1425,7 @@ router.get('/admin/users', auth, adminOnly, async (req, res) => {
     const users = await query('SELECT id,name,email,role,phone,country,created_at FROM users ORDER BY created_at DESC');
     res.json({ users });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 
@@ -999,7 +1450,7 @@ router.get('/search', async (req, res) => {
 
     res.json({ products, bundles, query: q });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendServerError(res, err);
   }
 });
 

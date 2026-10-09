@@ -29,6 +29,7 @@ function goAdmin(tab) {
   if (tab === 'overview')  admRenderOverview(main);
   if (tab === 'orders')    admRenderOrders(main);
   if (tab === 'products')  admRenderProducts(main);
+  if (tab === 'categories') admRenderCategories(main);
   if (tab === 'users')     admRenderUsers(main);
 }
 
@@ -75,7 +76,7 @@ async function admRenderOverview(el) {
 
   const res = await api('/admin/dashboard');
   if (!res || res.error) {
-    document.getElementById('adm-stats').innerHTML = `<div class="adm-error" style="grid-column:1/-1">Failed to load dashboard: ${res?.error || 'Network error'}</div>`;
+    document.getElementById('adm-stats').innerHTML = `<div class="adm-error" style="grid-column:1/-1">Failed to load dashboard: ${esc(res?.error || 'Network error')}</div>`;
     return;
   }
   const s = res.stats;
@@ -150,7 +151,7 @@ async function admLoadOrders(statusFilter) {
   const res = await api(url);
   const container = document.getElementById('adm-orders-body');
   if (!container) return;
-  if (!res || res.error) { container.innerHTML = `<div class="adm-error">Failed to load orders: ${res?.error||'Network error'}</div>`; return; }
+  if (!res || res.error) { container.innerHTML = `<div class="adm-error">Failed to load orders: ${esc(res?.error||'Network error')}</div>`; return; }
 
   ADM.orders = res.orders || [];
   if (!ADM.orders.length) { container.innerHTML = `<div class="adm-empty"><div class="adm-empty-icon">📋</div>No orders found.</div>`; return; }
@@ -224,7 +225,7 @@ async function admLoadProducts() {
   const res = await api('/admin/products');
   const container = document.getElementById('adm-products-body');
   if (!container) return;
-  if (!res || res.error) { container.innerHTML = `<div class="adm-error">Failed to load products: ${res?.error||'Network error'}</div>`; return; }
+  if (!res || res.error) { container.innerHTML = `<div class="adm-error">Failed to load products: ${esc(res?.error||'Network error')}</div>`; return; }
 
   ADM.products = res.products || [];
   if (!ADM.products.length) { container.innerHTML = `<div class="adm-empty"><div class="adm-empty-icon">📦</div>No products yet.</div>`; return; }
@@ -235,12 +236,12 @@ async function admLoadProducts() {
       const imgs = Array.isArray(p.images) ? p.images : (p.images ? JSON.parse(p.images) : []);
       const thumb = imgs[0] || '';
       return `<tr>
-        <td>${thumb ? `<img src="${getMediaUrl(thumb)}" class="adm-prod-thumb" alt="">` : '<div style="width:40px;height:40px;border-radius:var(--r);background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:1.2rem">📷</div>'}</td>
-        <td style="font-weight:600;max-width:180px">${esc(p.name)}</td>
+        <td>${thumb ? `<img src="${esc(getMediaUrl(thumb))}" class="adm-prod-thumb" alt="">` : '<div style="width:40px;height:40px;border-radius:var(--r);background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:1.2rem">📷</div>'}</td>
+        <td style="font-weight:600;max-width:180px">${esc(OCFI18n.catalogText(p, 'name'))}</td>
         <td style="color:var(--muted);font-size:.7rem">${esc(p.sku||'—')}</td>
         <td>Br ${parseFloat(p.price).toLocaleString()}</td>
         <td>${p.stock <= 4 ? `<span class="adm-low-stock">⚠ ${p.stock}</span>` : p.stock}</td>
-        <td style="color:var(--muted)">${esc(p.category_name||'—')}</td>
+        <td style="color:var(--muted)">${esc(OCFI18n.catalogText(p, 'category_name')||'—')}</td>
         <td><span class="adm-badge ${p.is_active?'active':'inactive'}">${p.is_active?'Active':'Inactive'}</span></td>
         <td>
           <div style="display:flex;gap:.4rem;align-items:center">
@@ -264,7 +265,7 @@ function admShowProductForm(productId) {
   const existingImg = imgs[0] || '';
 
   const catOptions = ADM.categories.map(c =>
-    `<option value="${c.id}"${product?.category_id===c.id?' selected':''}>${c.name}</option>`
+    `<option value="${c.id}"${product?.category_id===c.id?' selected':''}>${esc(OCFI18n.catalogText(c, 'name'))}</option>`
   ).join('');
 
   wrap.style.display = 'block';
@@ -272,13 +273,19 @@ function admShowProductForm(productId) {
     <div class="adm-card-title">${product ? '✏ Edit Product' : '+ New Product'}</div>
     <form id="adm-product-form" onsubmit="admSubmitProduct(event)">
       <div class="adm-form-grid">
+        <div class="adm-form-full"><strong>English</strong></div>
         <div>
-          <label class="adm-label">Product Name *</label>
-          <input class="adm-input" id="apf-name" value="${product?.name||''}" required placeholder="e.g. Traditional Heritage Shirt">
+          <label class="adm-label">Name (English) *</label>
+          <input class="adm-input" id="apf-name-en" value="${esc(product?.name_en||product?.name||'')}" required maxlength="255">
+        </div>
+        <div class="adm-form-full"><strong>Afaan Oromoo</strong></div>
+        <div>
+          <label class="adm-label">Name (Afaan Oromoo)</label>
+          <input class="adm-input" id="apf-name-om" value="${esc(product?.name_om||'')}" maxlength="255">
         </div>
         <div>
           <label class="adm-label">SKU</label>
-          <input class="adm-input" id="apf-sku" value="${product?.sku||''}" placeholder="e.g. OCF-M-001">
+          <input class="adm-input" id="apf-sku" value="${esc(product?.sku||'')}" placeholder="e.g. OCF-M-001">
         </div>
         <div>
           <label class="adm-label">Price (Br) *</label>
@@ -298,29 +305,34 @@ function admShowProductForm(productId) {
         </div>
         <div>
           <label class="adm-label">Region</label>
-          <input class="adm-input" id="apf-region" value="${product?.region||''}" placeholder="e.g. Wallagga">
+          <input class="adm-input" id="apf-region" value="${esc(product?.region||'')}" placeholder="e.g. Wallagga">
         </div>
         <div>
           <label class="adm-label">Material</label>
-          <input class="adm-input" id="apf-material" value="${product?.material||''}" placeholder="e.g. Hand-woven Cotton">
+          <input class="adm-input" id="apf-material" value="${esc(product?.material||'')}" placeholder="e.g. Hand-woven Cotton">
         </div>
         <div class="adm-form-full">
           <label class="adm-label">Short Description</label>
-          <input class="adm-input" id="apf-short-desc" value="${product?.short_desc||''}" placeholder="Brief product summary">
+          <input class="adm-input" id="apf-short-desc" value="${esc(product?.short_desc||'')}" placeholder="Brief product summary">
         </div>
         <div class="adm-form-full">
-          <label class="adm-label">Full Description</label>
-          <textarea class="adm-input adm-textarea" id="apf-desc" placeholder="Detailed product description...">${product?.description||''}</textarea>
+          <label class="adm-label">Description (English)</label>
+          <textarea class="adm-input adm-textarea" id="apf-desc-en">${esc(product?.description_en??product?.description??'')}</textarea>
+        </div>
+        <div class="adm-form-full"><strong>Afaan Oromoo</strong></div>
+        <div class="adm-form-full">
+          <label class="adm-label">Description (Afaan Oromoo)</label>
+          <textarea class="adm-input adm-textarea" id="apf-desc-om">${esc(product?.description_om||'')}</textarea>
         </div>
         <div class="adm-form-full">
           <label class="adm-label">Product Image</label>
           <div class="adm-upload-zone" id="adm-drop-zone" onclick="document.getElementById('apf-img-file').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="admHandleDrop(event)">
             <div style="font-size:2rem;margin-bottom:.5rem">📷</div>
             <div style="font-size:.8rem;color:var(--muted)">Click or drag & drop to upload (JPEG / PNG / WebP, max 5 MB)</div>
-            ${existingImg ? `<img src="${getMediaUrl(existingImg)}" class="adm-img-preview" id="adm-img-preview" alt="">` : '<img class="adm-img-preview" id="adm-img-preview" style="display:none" alt="">'}
+            ${existingImg ? `<img src="${esc(getMediaUrl(existingImg))}" class="adm-img-preview" id="adm-img-preview" alt="">` : '<img class="adm-img-preview" id="adm-img-preview" style="display:none" alt="">'}
           </div>
           <input type="file" id="apf-img-file" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="admUploadImage(this)">
-          <input type="hidden" id="apf-img-url" value="${existingImg}">
+          <input type="hidden" id="apf-img-url" value="${esc(existingImg)}">
           <div id="adm-upload-status" style="font-size:.72rem;color:var(--muted);margin-top:.4rem"></div>
         </div>
         <div class="adm-form-full" style="display:flex;gap:1.5rem;flex-wrap:wrap">
@@ -401,7 +413,8 @@ async function admSubmitProduct(e) {
   const images = imgUrl ? [imgUrl] : [];
 
   const payload = {
-    name:          document.getElementById('apf-name').value.trim(),
+    name_en:       document.getElementById('apf-name-en').value.trim(),
+    name_om:       document.getElementById('apf-name-om').value.trim(),
     sku:           document.getElementById('apf-sku').value.trim() || null,
     price:         parseFloat(document.getElementById('apf-price').value),
     compare_price: parseFloat(document.getElementById('apf-compare-price').value) || null,
@@ -410,7 +423,8 @@ async function admSubmitProduct(e) {
     region:        document.getElementById('apf-region').value.trim(),
     material:      document.getElementById('apf-material').value.trim(),
     short_desc:    document.getElementById('apf-short-desc').value.trim(),
-    description:   document.getElementById('apf-desc').value.trim(),
+    description_en: document.getElementById('apf-desc-en').value.trim(),
+    description_om: document.getElementById('apf-desc-om').value.trim(),
     images,
     is_best_seller: document.getElementById('apf-best-seller').checked,
     is_featured:    document.getElementById('apf-featured').checked,
@@ -431,6 +445,110 @@ async function admSubmitProduct(e) {
     toast(ADM.editingProduct ? 'Product updated successfully' : 'Product created successfully', 'success');
     admCancelProductForm();
     await admLoadProducts();
+  } else {
+    toast(`Error: ${res?.error || 'Request failed'}`, 'error');
+  }
+}
+
+async function admRenderCategories(el) {
+  el.innerHTML = `
+    <div class="adm-header">
+      <div class="adm-title">Category Management</div>
+      <button class="adm-btn adm-btn-gold" onclick="admShowCategoryForm(null)">+ Add Category</button>
+    </div>
+    <div class="adm-card" id="adm-category-form-wrap" style="display:none"></div>
+    <div class="adm-card">
+      <div class="adm-card-title">All Categories</div>
+      <div id="adm-categories-body"><div class="adm-skel" style="height:180px"></div></div>
+    </div>`;
+  await admLoadCategories();
+}
+
+async function admLoadCategories() {
+  const res = await api('/admin/categories');
+  const container = document.getElementById('adm-categories-body');
+  if (!container) return;
+  if (!res || res.error) {
+    container.innerHTML = `<div class="adm-error">Failed to load categories: ${esc(res?.error || 'Network error')}</div>`;
+    return;
+  }
+  ADM.categories = res.categories || [];
+  if (!ADM.categories.length) {
+    container.innerHTML = '<div class="adm-empty">No categories yet.</div>';
+    return;
+  }
+  container.innerHTML = `<div class="adm-table-wrap"><table class="adm-table">
+    <thead><tr><th>English</th><th>Afaan Oromoo</th><th>Slug</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${ADM.categories.map(category => `<tr>
+      <td>${esc(OCFI18n.catalogText({ ...category, name_om: null }, 'name'))}</td>
+      <td>${esc(category.name_om || category.name_en || category.name)}</td>
+      <td>${esc(category.slug)}</td>
+      <td><span class="adm-badge ${category.is_active ? 'active' : 'inactive'}">${category.is_active ? 'Active' : 'Inactive'}</span></td>
+      <td><button class="adm-btn adm-btn-ghost adm-btn-sm" onclick="admShowCategoryForm(${category.id})">✏ Edit</button>
+        <button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admDeleteCategory(${category.id})">🗑 Delete</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function admShowCategoryForm(categoryId) {
+  const category = categoryId ? ADM.categories.find(item => item.id === categoryId) : null;
+  const wrap = document.getElementById('adm-category-form-wrap');
+  if (!wrap) return;
+  wrap.style.display = 'block';
+  wrap.innerHTML = `<div class="adm-card-title">${category ? '✏ Edit Category' : '+ New Category'}</div>
+    <form onsubmit="admSubmitCategory(event,${category ? category.id : 'null'})">
+      <div class="adm-form-grid">
+        <div class="adm-form-full"><strong>English</strong></div>
+        <div><label class="adm-label">Name *</label><input class="adm-input" id="acf-name-en" required maxlength="255" value="${esc(category?.name_en || category?.name || '')}"></div>
+        <div class="adm-form-full"><strong>Afaan Oromoo</strong></div>
+        <div><label class="adm-label">Name (Afaan Oromoo)</label><input class="adm-input" id="acf-name-om" maxlength="255" value="${esc(category?.name_om || '')}"></div>
+        <div><label class="adm-label">Slug *</label><input class="adm-input" id="acf-slug" required value="${esc(category?.slug || '')}"></div>
+        <div><label class="adm-label">Region</label><input class="adm-input" id="acf-region" value="${esc(category?.region || '')}"></div>
+        <div class="adm-form-full"><label class="adm-label">Description (English)</label><textarea class="adm-input adm-textarea" id="acf-description-en">${esc(category?.description_en ?? category?.description ?? '')}</textarea></div>
+        <div class="adm-form-full"><label class="adm-label">Description (Afaan Oromoo)</label><textarea class="adm-input adm-textarea" id="acf-description-om">${esc(category?.description_om || '')}</textarea></div>
+        ${category ? `<label class="adm-checkbox-row"><input type="checkbox" id="acf-active"${category.is_active ? ' checked' : ''}> Active</label>` : ''}
+      </div>
+      <div style="display:flex;gap:.75rem;margin-top:1.25rem">
+        <button type="submit" class="adm-btn adm-btn-gold" id="acf-submit">Save Category</button>
+        <button type="button" class="adm-btn adm-btn-ghost" onclick="document.getElementById('adm-category-form-wrap').style.display='none'">Cancel</button>
+      </div>
+    </form>`;
+}
+
+async function admSubmitCategory(event, categoryId) {
+  event.preventDefault();
+  const button = document.getElementById('acf-submit');
+  button.disabled = true;
+  const payload = {
+    name_en: document.getElementById('acf-name-en').value.trim(),
+    name_om: document.getElementById('acf-name-om').value.trim() || null,
+    slug: document.getElementById('acf-slug').value.trim(),
+    region: document.getElementById('acf-region').value.trim(),
+    description_en: document.getElementById('acf-description-en').value.trim(),
+    description_om: document.getElementById('acf-description-om').value.trim(),
+    is_active: categoryId ? document.getElementById('acf-active').checked : true
+  };
+  const res = await api(categoryId ? `/admin/categories/${categoryId}` : '/admin/categories', {
+    method: categoryId ? 'PUT' : 'POST',
+    body: JSON.stringify(payload)
+  });
+  button.disabled = false;
+  if (res && !res.error) {
+    toast(categoryId ? 'Category updated successfully' : 'Category created successfully', 'success');
+    await admLoadCategories();
+    const form = document.getElementById('adm-category-form-wrap');
+    if (form) { form.style.display = 'none'; form.innerHTML = ''; }
+  } else {
+    toast(`Error: ${res?.error || 'Request failed'}`, 'error');
+  }
+}
+
+async function admDeleteCategory(categoryId) {
+  if (!confirm('Delete this category? Products will remain and become uncategorized.')) return;
+  const res = await api(`/admin/categories/${categoryId}`, { method: 'DELETE' });
+  if (res && !res.error) {
+    toast('Category deleted successfully', 'success');
+    await admLoadCategories();
   } else {
     toast(`Error: ${res?.error || 'Request failed'}`, 'error');
   }

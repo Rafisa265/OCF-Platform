@@ -38,3 +38,7 @@ Thumbs.db
 *.log
 .vscode/
 .idea/
+dist/
+
+# Temporary review backups
+*.review-backup

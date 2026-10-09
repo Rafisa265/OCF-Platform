@@ -162,6 +162,7 @@ img{display:block;max-width:100%;object-fit:cover}
 /* ── GENDER SECTION TABS (home) ── */
 .gender-tabs-wrap{display:flex;justify-content:center;gap:1rem;margin-bottom:3rem;flex-wrap:wrap}
 .gender-card{flex:1;min-width:200px;max-width:320px;background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:2rem;text-align:center;cursor:pointer;transition:all var(--t)}
+.gender-cards-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5rem}
 .gender-card:hover{border-color:var(--border2);transform:translateY(-3px);background:var(--card2)}
 .gender-card.active-gender{border-color:var(--gold);background:var(--gold-dim)}
 .gender-card-icon{font-size:2.5rem;margin-bottom:.75rem}
@@ -499,4 +500,48 @@ footer{background:var(--ink);border-top:1px solid var(--border);padding:3.5rem 0
   .hero-stats{grid-template-columns:1fr 1fr}
   .form-row{grid-template-columns:1fr}
   .drawer{width:100%;right:-100%}
+  .gender-cards-grid,.home-bundles-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:900px){
+  .gender-cards-grid,.home-bundles-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px){
+  .gender-cards-grid,.home-bundles-grid{grid-template-columns:minmax(0,1fr)}
+}
+.language-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: .15rem;
+  padding: .2rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--ink);
+  white-space: nowrap;
+}
+.language-switcher button {
+  border: 0;
+  border-radius: 999px;
+  padding: .35rem .55rem;
+  background: transparent;
+  color: var(--ivory2);
+  font: inherit;
+  font-size: .68rem;
+  cursor: pointer;
+}
+.language-switcher button.active,
+.language-switcher button[aria-pressed="true"] {
+  background: var(--gold);
+  color: var(--black);
+  font-weight: 600;
+}
+.language-switcher button:focus-visible {
+  outline: 2px solid var(--ivory);
+  outline-offset: 2px;
+}
+.language-switcher-mobile { display: none; }
+@media (max-width: 1100px) {
+  .nav-links, .search-wrap { display: none; }
+  .mobile-btn { display: block; }
+  .nav-right > .language-switcher { display: none; }
+  .language-switcher-mobile { display: inline-flex; margin: .5rem .75rem; }
 }
