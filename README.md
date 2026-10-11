@@ -91,6 +91,16 @@ Then open `index.html` in your browser.
 
 Migration `003_multilingual_catalog.sql` adds the English and Afaan Oromoo catalog columns. It backfills the English columns from existing product/category names and descriptions, retains the legacy columns for API compatibility, and leaves Oromo translations empty until an admin supplies them. Apply it to the intended PostgreSQL database with `npm run migrate`.
 
+### One-time production catalog initialization
+
+The catalog-only importer reads the tracked `backend/migrations/catalog_data.json` source and inserts its five categories and 32 products. It does not import users, orders, reviews, or other records and does not delete data. It does not load `.env` or fall back to `DATABASE_URL`.
+
+Run it only after independently confirming the intended database with the provider. Supply `OCF_CATALOG_IMPORT_DATABASE_URL`, `OCF_CATALOG_IMPORT_ALLOWED_DATABASE_HOST`, and `OCF_CATALOG_IMPORT_ALLOWED_DATABASE_NAME` to the one-time process from a protected secret source. The host and database name must be verified separately from the connection URL. `npm run catalog:import` defaults to a dry run, opens a transaction, locks the catalog tables, and refuses to continue unless both tables are empty. The dry run rolls back without inserting rows.
+
+Only after reviewing the dry-run result and separately approving the catalog insert, set `OCF_CATALOG_IMPORT_MODE=apply` and `OCF_CATALOG_IMPORT_APPROVED=YES`, then run `npm run catalog:import` once. The apply mode uses the same target allowlist and empty-table checks and verifies inserted counts before commit. If commit status is unclear or the command fails, inspect the target database before retrying.
+
+Do not use `npm run sync:catalog` for production initialization; that legacy command deletes existing products and reviews.
+
 ### Staging-only migrations
 For an explicitly approved, separate staging database, run `npm run migrate:staging` from `backend`. The command requires `OCF_STAGING_ONLY=YES`, `OCF_STAGING_DATABASE_URL`, `OCF_STAGING_ALLOWED_DATABASE_HOST`, and `OCF_STAGING_ALLOWED_DATABASE_NAME`; configure the hostname and database-name allowlist independently from the staging provider console. This entry point does not load dotenv or fall back to `DATABASE_URL`. Do not use the production `npm run migrate` command for staging. If a migration fails or the database has application tables without migration history, stop and inspect the staging schema before retrying; migration 003 is not safe to rerun blindly.
 

@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --test admin-validation.test.js && node scripts/migrate-staging.test.js",
+    "test": "node --test admin-validation.test.js && node scripts/migrate-staging.test.js && node scripts/catalog-import.test.js",
     "test:db": "node -e \"require('./database/db').getDB().then(()=>console.log('✅ DB OK')).catch(err=>{console.error('DB connection failed:',err.code||err.message);process.exitCode=1})\"",
     "test:api": "node test_api.js",
     "test:full": "node full_stack_test.js",
@@ -22,7 +22,8 @@
     "migrate": "node migrations/migrate.js",
     "migrate:staging": "node scripts/migrate-staging.js",
     "migrate:data": "node migrations/migrate_data.js",
-    "sync:catalog": "node migrations/sync_catalog_to_pg.js"
+    "sync:catalog": "node migrations/sync_catalog_to_pg.js",
+    "catalog:import": "node scripts/import-production-catalog.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
