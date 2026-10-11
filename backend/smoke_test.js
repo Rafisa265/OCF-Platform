@@ -1,6 +1,11 @@
 // smoke_test.js — Complete End-to-End Smoke Test for OCF Platform
 // Validates 12-step Customer Journey + 9-step Admin Journey
 require('dotenv').config();
+if (!process.env.ADMIN_EMAIL?.trim() || !process.env.ADMIN_PASSWORD?.trim()) {
+  console.error('ADMIN_EMAIL and ADMIN_PASSWORD are required to run the smoke integration test.');
+  process.exit(1);
+}
+
 const http = require('http');
 const crypto = require('crypto');
 const app = require('./server');
@@ -205,8 +210,8 @@ async function runSmokeTest() {
     // 1. Admin login
     console.log('\n[Admin Step 1] Admin Authentication');
     const adminLoginRes = await request('POST', '/auth/login', {
-      email: process.env.ADMIN_EMAIL || 'admin@ocf.com',
-      password: process.env.ADMIN_PASSWORD || 'Admin@OCF2026!'
+      email: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD
     });
     assert(adminLoginRes.status === 200, `Admin login returns 200 (got ${adminLoginRes.status})`);
     assert(adminLoginRes.body.user.role === 'admin', 'User has admin role');

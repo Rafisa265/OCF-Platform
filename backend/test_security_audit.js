@@ -8,6 +8,10 @@
  */
 process.env.NODE_ENV = 'test';
 require('dotenv').config();
+if (!process.env.ADMIN_EMAIL?.trim() || !process.env.ADMIN_PASSWORD?.trim()) {
+  console.error('ADMIN_EMAIL and ADMIN_PASSWORD are required to run the security integration test.');
+  process.exit(1);
+}
 
 const http = require('http');
 const crypto = require('crypto');

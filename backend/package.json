@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test:db": "node -e \"require('./database/db').getDB().then(()=>console.log('✅ DB OK')).catch(console.error)\"",
+    "test": "node --test admin-validation.test.js && node scripts/migrate-staging.test.js",
+    "test:db": "node -e \"require('./database/db').getDB().then(()=>console.log('✅ DB OK')).catch(err=>{console.error('DB connection failed:',err.code||err.message);process.exitCode=1})\"",
     "test:api": "node test_api.js",
     "test:full": "node full_stack_test.js",
     "test:upload": "node test_upload.js",
@@ -34,7 +35,6 @@
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
-    "nodemailer": "^9.0.1",
     "pg": "^8.23.1"
   }
 }

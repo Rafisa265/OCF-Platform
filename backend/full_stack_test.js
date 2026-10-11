@@ -3,6 +3,11 @@ const http = require('http');
 const crypto = require('crypto');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
+if (!process.env.ADMIN_EMAIL?.trim() || !process.env.ADMIN_PASSWORD?.trim()) {
+  console.error('ADMIN_EMAIL and ADMIN_PASSWORD are required to run the full-stack integration test.');
+  process.exit(1);
+}
+
 const app = require('./server');
 const { pool } = require('./database/db');
 
@@ -175,8 +180,8 @@ async function runFullStackTest() {
     console.log(`\n▶ Step 9: Admin Dashboard & Order Processing`);
     console.log(`  Admin login -> POST /api/auth/login`);
     const adminLogin = await apiRequest('POST', '/api/auth/login', {
-      email: process.env.ADMIN_EMAIL || 'admin@oromoculturalfashion.com',
-      password: process.env.ADMIN_PASSWORD || 'Admin@OCF2024'
+      email: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD
     });
     const adminToken = adminLogin.body.token;
 

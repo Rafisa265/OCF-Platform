@@ -1,7 +1,7 @@
 // test_product_delete.js — Comprehensive verification for DELETE /api/admin/products/:id
 require('dotenv').config();
-if (typeof process.env.ADMIN_PASSWORD !== 'string' || !process.env.ADMIN_PASSWORD.trim()) {
-  console.error('ADMIN_PASSWORD is required to run the product deletion integration test.');
+if (!process.env.ADMIN_EMAIL?.trim() || !process.env.ADMIN_PASSWORD?.trim()) {
+  console.error('ADMIN_EMAIL and ADMIN_PASSWORD are required to run the product deletion integration test.');
   process.exit(1);
 }
 
@@ -72,7 +72,7 @@ async function runTests() {
   try {
     // 1. Log in as admin
     const adminLogin = await request('POST', '/api/auth/login', {
-      email: process.env.ADMIN_EMAIL || 'admin@oromoculturalfashion.com',
+      email: process.env.ADMIN_EMAIL,
       password: process.env.ADMIN_PASSWORD
     });
     const adminToken = adminLogin.body?.token;

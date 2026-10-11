@@ -33,16 +33,23 @@ test('product prices reject missing, blank, invalid, negative, and non-finite va
   }
 });
 
-test('product deletion integration test fails before startup if ADMIN_PASSWORD is missing', () => {
-  const scriptPath = path.join(__dirname, 'test_product_delete.js');
-  const result = spawnSync(process.execPath, [scriptPath], {
-    cwd: __dirname,
-    encoding: 'utf8',
-    env: { ...process.env, ADMIN_PASSWORD: '' }
-  });
-  const output = `${result.stdout}${result.stderr}`;
+test('database-mutating integration tests fail before startup if admin credentials are missing', () => {
+  for (const script of [
+    'test_product_delete.js',
+    'full_stack_test.js',
+    'smoke_test.js',
+    'test_security_audit.js'
+  ]) {
+    const scriptPath = path.join(__dirname, script);
+    const result = spawnSync(process.execPath, [scriptPath], {
+      cwd: __dirname,
+      encoding: 'utf8',
+      env: { ...process.env, ADMIN_EMAIL: '', ADMIN_PASSWORD: '' }
+    });
+    const output = `${result.stdout}${result.stderr}`;
 
-  assert.equal(result.status, 1);
-  assert.match(output, /ADMIN_PASSWORD is required/);
-  assert.doesNotMatch(output, /password\s*[:=]/i);
+    assert.equal(result.status, 1, `${script} should exit before startup`);
+    assert.match(output, /ADMIN_EMAIL and ADMIN_PASSWORD are required/);
+    assert.doesNotMatch(output, /password\s*[:=]/i);
+  }
 });

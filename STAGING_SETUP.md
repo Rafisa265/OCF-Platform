@@ -8,7 +8,7 @@ No staging database, Render service, Cloudflare Pages project, endpoint, or stag
 
 1. **Neon:** Use a project and branch dedicated to staging. Do not use, clone credentials from, or point staging at the production database or branch. For one-time migration and data scripts, use Neon’s **Direct** endpoint; the staging guard rejects pooled endpoints because the runner relies on a session-level advisory lock. Record the exact lowercase Direct endpoint hostname and database name. Keep the connection URL in a protected secret store; do not put it in source control or share it in chat.
 2. **Render:** Create the backend as a Free web service from the intended repository and branch, using `backend` as the root directory and the build/start/health-check settings in `render.yaml.example`. The public Render service URL is not known yet.
-3. **Cloudflare Pages:** Create the static frontend project from the intended repository and branch, with the repository root as the static output. Its production Pages origin is not known yet. In `index.html`, `window.__OCF_API_URL__` is currently empty; once the Render URL is verified, configure it to that backend origin before publishing the frontend. The backend `FRONTEND_URL` must be the exact Pages origin, with no path or trailing slash.
+3. **Cloudflare Pages:** Create the static frontend project from the intended repository and branch, with the repository root as the static output. Its production Pages origin is not known yet. In `index.html`, `window.__OCF_API_URL__` currently points to a Render backend; verify that it is the intended staging service before publishing the staging frontend. The backend `FRONTEND_URL` must be the exact Pages origin, with no path or trailing slash.
 
 ## Environment configuration
 
